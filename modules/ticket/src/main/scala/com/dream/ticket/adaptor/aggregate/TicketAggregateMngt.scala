@@ -4,15 +4,15 @@ import akka.actor.{Actor, ActorLogging, Props}
 import com.dream.ticket.usecase.TicketAggregateReadModelCase
 
 object TicketAggregateMngt {
-  def props( ticketAggregateReadModelCase: TicketAggregateReadModelCase): Props = Props(new TicketAggregateMngt())
+  def props( ticketAggregateReadModelCase: TicketAggregateReadModelCase): Props = Props(new TicketAggregateMngt(ticketAggregateReadModelCase))
 
   def name: String = "ticketAggregateMngt"
 
 }
 
-class TicketAggregateMngt() extends Actor with ActorLogging {
+class TicketAggregateMngt(ticketAggregateReadModelCase: TicketAggregateReadModelCase) extends Actor with ActorLogging {
 
   override def receive: Receive = {
-    case request:  TicketEvent =>
+    case event:  TicketEvent => ticketAggregateReadModelCase.execute(event)
   }
 }
