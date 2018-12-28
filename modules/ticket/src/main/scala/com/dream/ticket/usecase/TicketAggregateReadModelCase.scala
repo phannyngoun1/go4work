@@ -28,7 +28,7 @@ class TicketAggregateReadModelCase(ticketAggregateReadModelFlows: TicketAggregat
     }
 
 
-  private val ticketEventHandlersQueqe: SourceQueueWithComplete[(TicketEvent, Promise[Done])] =
+  private val ticketEventHandlersQueue: SourceQueueWithComplete[(TicketEvent, Promise[Done])] =
     Source
       .queue[(TicketEvent, Promise[Done])](bufferSize, OverflowStrategy.dropNew)
       .via(projectionFlow.zipPromise)
@@ -36,6 +36,6 @@ class TicketAggregateReadModelCase(ticketAggregateReadModelFlows: TicketAggregat
       .run()
 
   def execute(ticketEvent: TicketEvent)(implicit ec: ExecutionContext): Future[Done] =
-    offerToQueue(ticketEventHandlersQueqe)(ticketEvent, Promise())
+    offerToQueue(ticketEventHandlersQueue)(ticketEvent, Promise())
 
 }
