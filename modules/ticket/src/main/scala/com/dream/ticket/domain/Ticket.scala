@@ -15,6 +15,7 @@ case class Participant(
 )
 
 object Participant {
+
   implicit val format: Format[Participant] = Json.format
 }
 
@@ -24,9 +25,7 @@ case class Ticket(
 
   ticketNo: String,
 
-  subject: String,
-
-  description: String,
+  content: TicketContent,
 
   source: TicketSourceType,
 
@@ -41,8 +40,11 @@ case class Ticket(
   createdAt: Instant = Instant.now(),
 
   modifiedAt: Option[Instant] = None
+
 )
 
 object Ticket {
+
   implicit val format: Format[Ticket] = Json.format
+
 }
