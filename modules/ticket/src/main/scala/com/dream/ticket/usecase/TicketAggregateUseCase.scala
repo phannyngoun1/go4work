@@ -1,5 +1,6 @@
 package com.dream.ticket.usecase
 
+import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Keep, Source, SourceQueueWithComplete}
 import akka.stream.{ActorMaterializer, Materializer, _}
@@ -45,5 +46,10 @@ class TicketAggregateUseCase(ticketAggregateFlows: TicketAggregateFlows)(implici
     .via(ticketAggregateFlows.createTicketFlow.zipPromise)
     .toMat(completePromiseSink)(Keep.left)
     .run()
+
+
+  def initialModule(): Future[Done] = ???
+
+
 
 }
