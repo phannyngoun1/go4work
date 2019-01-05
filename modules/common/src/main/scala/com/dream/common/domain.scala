@@ -16,4 +16,6 @@ object domain {
 
   }
 
+  trait Error
+
 }

@@ -2,22 +2,8 @@ package com.dream.ticket.domain
 
 import java.time.Instant
 
+import com.dream.ticket.domain.Flow.{ActivityHis, BaseActivity, DoAction}
 import play.api.libs.json._
-
-case class Participant(
-
-  agentId: Long,
-
-  teamId: Long,
-
-  deptId: Long
-
-)
-
-object Participant {
-
-  implicit val format: Format[Participant] = Json.format
-}
 
 case class Ticket(
 
@@ -39,12 +25,16 @@ case class Ticket(
 
   createdAt: Instant = Instant.now(),
 
-  modifiedAt: Option[Instant] = None
+  modifiedAt: Option[Instant] = None,
+
+  currActivity: BaseActivity,
+
+  activityHis: Seq[ActivityHis] = Seq.empty
 
 )
 
 object Ticket {
 
-  implicit val format: Format[Ticket] = Json.format
+  //implicit val format: Format[Ticket] = Json.format
 
 }

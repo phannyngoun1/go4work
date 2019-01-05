@@ -1,10 +1,6 @@
 package com.dream.ticket.domain
 
-object TicketContent {
-
-
-}
-
+import play.api.libs.json.{Format, Json}
 
 sealed trait TicketContent{
 
@@ -22,5 +18,9 @@ case class DefaultContent(subject: String, description: String) extends TicketCo
 
 }
 
+
+object DefaultContent {
+  implicit val format: Format[DefaultContent] = Json.format
+}
 
 
