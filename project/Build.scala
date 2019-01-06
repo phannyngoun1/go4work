@@ -33,6 +33,14 @@ object Common {
       "com.typesafe.akka" %% "akka-actor" % akkaVersion,
       "com.typesafe.akka" %% "akka-persistence" % akkaVersion,
       "com.typesafe.akka" %% "akka-stream" % akkaVersion,
+
+      "com.github.dnvriend" %% "akka-persistence-jdbc" % "3.4.0",
+      "org.iq80.leveldb" % "leveldb" % "0.7",
+      "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8",
+
+      "com.typesafe.akka" %% "akka-slf4j" % "2.5.19",
+      "ch.qos.logback" % "logback-classic" % "1.2.3",
+
       "mysql" % "mysql-connector-java" % "5.1.42",
 
       "org.julienrf" %% "play-json-derived-codecs" % "4.0.0",
