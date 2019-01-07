@@ -1,4 +1,4 @@
-name := """play-isolated-slick"""
+name := """4work"""
 
 version := "1.1-SNAPSHOT"
 
