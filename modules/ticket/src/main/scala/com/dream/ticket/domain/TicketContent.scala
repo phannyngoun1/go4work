@@ -4,7 +4,8 @@ import julienrf.json.derived
 import play.api.libs.json.{Format, Json, OFormat}
 
 sealed trait TicketContent {
-  def getSubject: String
+  val subject: String
+  val description: String
 }
 
 object TicketContent {
@@ -13,11 +14,7 @@ object TicketContent {
 
 
 case class DefaultContent(subject: String, description: String) extends TicketContent {
-
   require(!subject.isEmpty)
-
-  override def getSubject: String = subject
-
 }
 
 object DefaultContent {

@@ -2,6 +2,7 @@ package com.dream.ticket.adaptor.aggregate
 
 import akka.actor.ActorLogging
 import akka.persistence.PersistentActor
+import com.dream.ticket.domain.Ticket
 
 object TicketAggregate {
 
@@ -9,11 +10,15 @@ object TicketAggregate {
 
   def name(ticketId: Long): String = ticketId.toString
 
+
+
 }
 
 class TicketAggregate extends PersistentActor with ActorLogging {
 
   import TicketAggregate._
+
+  var state: Option[Ticket] = None
 
   override def receiveRecover: Receive = ???
 

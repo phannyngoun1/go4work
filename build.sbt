@@ -12,6 +12,8 @@ lazy val flyway = (project in file("modules/flyway"))
 lazy val api = (project in file("modules/api"))
   .settings(Common.projectSettings)
 
+
+
 lazy val slick = (project in file("modules/slick"))
   .settings(Common.projectSettings)
   .aggregate(api)
@@ -19,6 +21,12 @@ lazy val slick = (project in file("modules/slick"))
 
 lazy val common =  (project in file("modules/common"))
   .settings(Common.projectSettings)
+  .settings(
+    libraryDependencies ++= Seq(
+      "com.typesafe.akka" %% "akka-actor" % Common.akkaVersion,
+      "com.typesafe.akka" %% "akka-stream" % Common.akkaVersion
+    )
+  )
 
 
 lazy val inventory =  (project in file("modules/inventory"))
@@ -27,6 +35,20 @@ lazy val inventory =  (project in file("modules/inventory"))
 
 lazy val ticket =  (project in file("modules/ticket"))
   .settings(Common.projectSettings)
+  .settings(
+    libraryDependencies ++= Seq(
+      "com.typesafe.akka" %% "akka-actor" % Common.akkaVersion,
+      "com.typesafe.akka" %% "akka-persistence" % Common.akkaVersion,
+      "com.typesafe.akka" %% "akka-stream" % Common.akkaVersion,
+      "com.typesafe.akka" %% "akka-slf4j" % "2.5.19",
+      //"ch.qos.logback" % "logback-classic" % "1.2.3",
+      "com.github.dnvriend" %% "akka-persistence-jdbc" % "3.4.0",
+      "org.iq80.leveldb" % "leveldb" % "0.7",
+      "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8",
+
+      "mysql" % "mysql-connector-java" % "5.1.42",
+    )
+  )
   .aggregate(common)
   .dependsOn(common)
 

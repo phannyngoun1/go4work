@@ -11,12 +11,17 @@ object Flow {
   case class ActivityNotFoundError(message: String) extends FlowError(message)
 
   sealed trait BaseActivity {
-    val name: String
+    def name: String
 
     override def equals(obj: Any): Boolean = obj match {
       case a: BaseActivity => name.equals(a.name)
       case _ => false
     }
+  }
+
+
+  case object TestActivity extends BaseActivity {
+    override def name: String = "test"
   }
 
   object BaseActivity {
@@ -150,6 +155,8 @@ object Flow {
     implicit val format: Format[DoAction] = Json.format
   }
 }
+
+
 
 case class Flow(
 
