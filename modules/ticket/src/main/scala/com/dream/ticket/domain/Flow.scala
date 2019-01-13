@@ -1,5 +1,7 @@
 package com.dream.ticket.domain
 
+import java.time.Instant
+
 import com.dream.ticket.domain.Flow._
 import julienrf.json._
 import play.api.libs.json._
@@ -36,21 +38,24 @@ object Flow {
     implicit val jsonFormat: OFormat[BaseAction] = derived.oformat[BaseAction]()
   }
 
-  sealed trait PayLoad
+  sealed trait PayLoad {
+
+  }
+
   object PayLoad {
     implicit val jsonFormat: OFormat[PayLoad] = derived.oformat[PayLoad]()
   }
 
   case class DefaultPayLoad(value: String) extends PayLoad
 
-  sealed trait FlowParams
+  sealed trait Params
 
-  object FlowParams {
-    implicit val jsonFormat: OFormat[FlowParams] = derived.oformat[FlowParams]()
+  object Params {
+    implicit val jsonFormat: OFormat[Params] = derived.oformat[Params]()
   }
 
 
-  case class DefaultFlowParams(value: String) extends FlowParams
+  case class DefaultFlowParams(value: String) extends Params
 
   sealed trait BaseActivityFlow {
     def activity: BaseActivity
@@ -64,7 +69,8 @@ object Flow {
     activity: BaseActivity,
     participant: Participant,
     action: BaseAction,
-    payLoad: PayLoad
+    payLoad: PayLoad,
+    actionDate: Instant = Instant.now()
   )
 
   object ActivityHis {
@@ -75,7 +81,6 @@ object Flow {
   object ActionFlow {
     implicit val format: Format[ActionFlow] = Json.format
   }
-
 
   case class ActivityFlow(activity: BaseActivity, participants: List[Participant], actionFlows: List[ActionFlow]) extends BaseActivityFlow
   object ActivityFlow {
@@ -148,7 +153,12 @@ object Flow {
   }
 
 
-  case class DoAction(action: BaseAction, onActivity: BaseActivity, by: Participant, flowParams: Option[FlowParams] = None)
+  case class DoAction(
+    ticketId: Option[Long] = None,
+    action: BaseAction,
+    onActivity: BaseActivity,
+    by: Participant,
+    params: Option[Params] = None)
 
 
   object DoAction {
@@ -156,10 +166,7 @@ object Flow {
   }
 }
 
-
-
 case class Flow(
-
   id: Long,
   initialActivity: BaseActivity,
   quickAccessFlows: Seq[BaseActivityFlow],

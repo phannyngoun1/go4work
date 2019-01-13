@@ -18,8 +18,8 @@ import scala.concurrent.ExecutionContext
 //class HomeController @Inject()(userDAO: UserDAO, cc: ControllerComponents)
 class HomeController @Inject()( cc: ControllerComponents)
   (implicit ec: ExecutionContext)
-  extends AbstractController(cc) {
-
+  extends AbstractController(cc)
+ {
   implicit val system: ActorSystem = ActorSystem("ticket-system")
   val rootConfig: Config = ConfigFactory.load()
   val dbConfig: DatabaseConfig[JdbcProfile] = DatabaseConfig.forConfig[JdbcProfile](path = "slick", rootConfig)
@@ -29,6 +29,10 @@ class HomeController @Inject()( cc: ControllerComponents)
   val ticketAggregateMngt = system.actorOf(TicketAggregateMngt.props(ticketAggregateReadModelUseCase), TicketAggregateMngt.name)
 
   val ticketAggregateUserCase = new TicketAggregateUseCase(new TicketAggregateFlowsImpl(ticketAggregateMngt))
+
+
+
+
 
   def index = Action.async { implicit request =>
 

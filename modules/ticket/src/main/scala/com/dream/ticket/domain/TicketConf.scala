@@ -1,6 +1,7 @@
 package com.dream.ticket.domain
 
 import com.dream.common.domain.Type
+import com.dream.ticket.domain.PriorityType.findValues
 import enumeratum.values.{StringEnumEntry, _}
 
 sealed abstract class TicketSourceType(val value: String, val name: String, val description: Option[String] = None) extends StringEnumEntry with Type
@@ -53,6 +54,18 @@ object PriorityType extends StringEnum[PriorityType] with StringPlayJsonValueEnu
   case object Normal extends TicketSourceType("Normal", "Normal")
 
   case object Low extends TicketSourceType("Low", "Low")
+
+
+}
+
+
+
+sealed abstract class PayLoadType(val value: String, val name: String, val description: Option[String] = None) extends StringEnumEntry with Type
+
+object PayLoadType extends  StringEnum[PriorityType] with StringPlayJsonValueEnum[PriorityType] {
+
+  override def values = findValues
+
 
 
 }

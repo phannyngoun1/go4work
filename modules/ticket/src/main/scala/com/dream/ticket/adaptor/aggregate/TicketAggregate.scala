@@ -10,8 +10,6 @@ object TicketAggregate {
 
   def name(ticketId: Long): String = ticketId.toString
 
-
-
 }
 
 class TicketAggregate extends PersistentActor with ActorLogging {
@@ -25,4 +23,5 @@ class TicketAggregate extends PersistentActor with ActorLogging {
   override def receiveCommand: Receive = ???
 
   override def persistenceId: String =  s"$AggregateName-${self.path.name}"
+
 }

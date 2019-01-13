@@ -5,6 +5,7 @@ import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Keep, Source, SourceQueueWithComplete}
 import akka.stream.{ActorMaterializer, Materializer, _}
 import com.dream.common.UseCaseSupport
+import com.dream.common.domain.Param
 import com.dream.ticket.usecase.port.TicketAggregateFlows
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -21,7 +22,12 @@ object TicketAggregateUseCase {
       val ticketId: Long
     }
 
-    case class CreateTicketRequest(override val ticketId: Long) extends TicketRequest
+    case class CreateTicketRequest(override val ticketId: Long, ticketItem: Int, by: Int, param: Param) extends TicketRequest
+
+    case class TicketActionRequest(override val ticketId: Long, action: String, by: Int, param: Param) extends TicketRequest
+
+    case class TicketActionTakenSuccess(override val ticketId: Long) extends TicketResponse
+    case class TicketActionTakenFailed(override val ticketId: Long, message: String) extends TicketResponse
 
     case class TicketCreatedSuccess(override val ticketId: Long) extends TicketResponse
 

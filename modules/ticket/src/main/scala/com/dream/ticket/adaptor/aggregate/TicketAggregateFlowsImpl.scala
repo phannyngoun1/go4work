@@ -15,8 +15,25 @@ class TicketAggregateFlowsImpl(aggregateRef: ActorRef) extends TicketAggregateFl
 
   private implicit val to: Timeout = Timeout(2.seconds)
 
+
+  def takeAction =  {
+
+    //Find workflow
+
+    //Get activity flow
+
+      // --validate participant
+      // --trigger task in the activity
+      // --update ticket persistent
+  }
+
+
+
   override def createTicketFlow: Flow[CreateTicketRequest, TicketResponse, NotUsed] =
     Flow[CreateTicketRequest]
+
+      //check for flow
+      //
       .mapAsync(1)(aggregateRef ? _ )
       .map {
         case _ => TicketCreatedSuccess(1)

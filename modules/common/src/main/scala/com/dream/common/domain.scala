@@ -18,4 +18,7 @@ object domain {
 
   trait Error
 
+
+  trait Param
+
 }
