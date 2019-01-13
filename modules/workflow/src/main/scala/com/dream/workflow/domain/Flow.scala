@@ -1,8 +1,9 @@
-package com.dream.ticket.domain
+package com.dream.workflow.domain
 
 import java.time.Instant
+import java.util.UUID
 
-import com.dream.ticket.domain.Flow._
+import com.dream.workflow.domain.Flow._
 import julienrf.json._
 import play.api.libs.json._
 
@@ -38,6 +39,7 @@ object Flow {
     implicit val jsonFormat: OFormat[BaseAction] = derived.oformat[BaseAction]()
   }
 
+
   sealed trait PayLoad {
 
   }
@@ -46,7 +48,9 @@ object Flow {
     implicit val jsonFormat: OFormat[PayLoad] = derived.oformat[PayLoad]()
   }
 
-  case class DefaultPayLoad(value: String) extends PayLoad
+  case class DefaultPayLoad(
+    value: String
+  ) extends PayLoad
 
   sealed trait Params
 
@@ -65,11 +69,16 @@ object Flow {
     implicit val jsonFormat: OFormat[BaseActivityFlow] = derived.oformat[BaseActivityFlow]()
   }
 
+
+  case class ActionHis(
+    participant: Participant,
+    action: BaseAction
+  )
+
   case class ActivityHis(
     activity: BaseActivity,
-    participant: Participant,
-    action: BaseAction,
-    payLoad: PayLoad,
+    actionHis: Seq[ActionHis],
+    payLoadId: UUID,
     actionDate: Instant = Instant.now()
   )
 

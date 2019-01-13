@@ -75,8 +75,8 @@ lazy val workflow =  (project in file("modules/workflow"))
 lazy val root = (project in file("."))
   .settings(Common.projectSettings)
   .enablePlugins(PlayScala)
-  .aggregate(slick, ticket)
-  .dependsOn(slick, ticket)
+  .aggregate(slick, workflow , ticket)
+  .dependsOn(slick, workflow, ticket)
 
 
 scalacOptions += "-Ypartial-unification"

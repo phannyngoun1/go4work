@@ -1,4 +1,4 @@
-package com.dream.ticket.domain
+package com.dream.workflow.domain
 
 import play.api.libs.json.{Format, Json}
 
