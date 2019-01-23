@@ -223,5 +223,5 @@ case class Flow(
     }
 }
 
-case class WorkflowError(message: String) extends Error
+case class WorkflowError(message: String) extends FlowError(message = message)
 

@@ -3,6 +3,7 @@ package com.dream.workflow.adaptor.aggregate
 import java.util.UUID
 
 import com.dream.common.Protocol.{CmdRequest, CmdResponse}
+import com.dream.workflow.domain.Flow.BaseActivityFlow
 
 object WorkflowProtocol {
 
@@ -13,5 +14,11 @@ object WorkflowProtocol {
   sealed trait WorkFlowCmdResponse extends CmdResponse {
     val id: UUID
   }
+
+  case class CreateWorkflowCmdRequest(
+    id: UUID,
+    initialActivityName: String,
+    flowList: Seq[BaseActivityFlow]
+  ) extends WorkFlowCmdRequest
 
 }
