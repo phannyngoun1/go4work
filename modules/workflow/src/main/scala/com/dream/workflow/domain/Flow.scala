@@ -163,11 +163,12 @@ object Flow {
 
 
   case class DoAction(
-    ticketId: Option[Long] = None,
+    instanceId: Option[UUID] = None,
     action: BaseAction,
     onActivity: BaseActivity,
     by: Participant,
-    params: Option[Params] = None)
+    params: Option[Params] = None
+  )
 
 
   object DoAction {
@@ -176,9 +177,9 @@ object Flow {
 }
 
 case class Flow(
-  id: Long,
-  initialActivity: BaseActivity,
-  quickAccessFlows: Seq[BaseActivityFlow],
+  id: UUID,
+  initialActivityName: String,
+  flowList: Seq[BaseActivityFlow],
   isActive: Boolean = true
 
 ) {
@@ -201,7 +202,7 @@ case class Flow(
 
   private def checkCurrentActivity(activity: BaseActivity) : Either[FlowError, BaseActivityFlow] =
 
-    quickAccessFlows.find(_.activity == activity ) match {
+    flowList.find(_.activity == activity ) match {
       case None => Left(ActivityNotFoundError(s"Current activity: ${activity.name} can't be found"))
       case Some(act: BaseActivityFlow )=> Right(act)
     }
@@ -210,8 +211,8 @@ case class Flow(
 
     activityFlow match {
       case act: ActivityFlow => act.actionFlows.find(_.action == action) match {
-        case Some(af: ActionFlow) => quickAccessFlows.find(_.activity == af.activity) match {
-          case Some(value: StayStillActivityFlow) => Right(activityFlow)
+        case Some(af: ActionFlow) => flowList.find(_.activity == af.activity) match {
+          case Some(_: StayStillActivityFlow) => Right(activityFlow)
           case Some(value) => Right(value)
           case _  => Left(ActivityNotFoundError(s"Next activity cannot found by action: ${action.name}; current activity ${activityFlow.activity.name}"))
         }
@@ -220,5 +221,7 @@ case class Flow(
       case act: StayStillActivityFlow => Right(act)
       case  _ => Left(ActivityNotFoundError(""))
     }
-
 }
+
+case class WorkflowError(message: String) extends Error
+

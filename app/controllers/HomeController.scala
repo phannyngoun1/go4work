@@ -30,15 +30,9 @@ class HomeController @Inject()( cc: ControllerComponents)
 
   val ticketAggregateUserCase = new TicketAggregateUseCase(new TicketAggregateFlowsImpl(ticketAggregateMngt))
 
-
-
-
-
   def index = Action.async { implicit request =>
 
-
     ticketAggregateUserCase.createTicket().map {
-
       case res: TicketCreatedSuccess => Ok(s"hello ${res.ticketId}")
       case _ => Ok("Failed")
     }
