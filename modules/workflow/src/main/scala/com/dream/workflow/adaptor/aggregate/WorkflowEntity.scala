@@ -6,7 +6,7 @@ import akka.Done
 import akka.actor.{ActorLogging, Props}
 import akka.persistence._
 import com.dream.workflow.domain.FlowEvent.FlowCreated
-import com.dream.workflow.domain.{Flow, WorkflowError}
+import com.dream.workflow.domain.{Workflow, WorkflowError}
 import cats.implicits._
 import com.dream.workflow.adaptor.aggregate.WorkflowProtocol.CreateWorkflowCmdRequest
 
@@ -19,8 +19,8 @@ object WorkflowEntity {
 
   def name(uuId: UUID): String = uuId.toString
 
-  implicit class EitherOps(val self: Either[WorkflowError, Flow]) {
-    def toSomeOrThrow: Option[Flow] = self.fold(error => throw new IllegalStateException(error.message), Some(_))
+  implicit class EitherOps(val self: Either[WorkflowError, Workflow]) {
+    def toSomeOrThrow: Option[Workflow] = self.fold(error => throw new IllegalStateException(error.message), Some(_))
   }
 
 }
@@ -28,11 +28,11 @@ object WorkflowEntity {
 class WorkflowEntity extends PersistentActor with ActorLogging {
 
   import WorkflowEntity._
-  var state: Option[Flow] = None
+  var state: Option[Workflow] = None
 
-  private def applyState(event: FlowCreated): Either[WorkflowError, Flow] =
+  private def applyState(event: FlowCreated): Either[WorkflowError, Workflow] =
     Either.right(
-      Flow(
+      Workflow(
         event.id,
         event.initialActivityName,
         event.flowList,
@@ -42,7 +42,7 @@ class WorkflowEntity extends PersistentActor with ActorLogging {
 
   override def receiveRecover: Receive = {
 
-    case SnapshotOffer(_, _state: Flow) =>
+    case SnapshotOffer(_, _state: Workflow) =>
       state = Some(_state)
     case SaveSnapshotSuccess(metadata) =>
       log.info(s"receiveRecover: SaveSnapshotSuccess succeeded: $metadata")

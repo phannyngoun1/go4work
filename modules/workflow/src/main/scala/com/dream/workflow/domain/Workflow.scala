@@ -3,11 +3,11 @@ package com.dream.workflow.domain
 import java.time.Instant
 import java.util.UUID
 
-import com.dream.workflow.domain.Flow._
+import com.dream.workflow.domain.Workflow._
 import julienrf.json._
 import play.api.libs.json._
 
-object Flow {
+object Workflow {
 
   sealed abstract class FlowError(message: String)
 
@@ -176,10 +176,10 @@ object Flow {
   }
 }
 
-case class Flow(
+case class Workflow(
   id: UUID,
   initialActivityName: String,
-  flowList: Seq[BaseActivityFlow],
+  workflowList: Seq[BaseActivityFlow],
   isActive: Boolean = true
 
 ) {
@@ -202,7 +202,7 @@ case class Flow(
 
   private def checkCurrentActivity(activity: BaseActivity) : Either[FlowError, BaseActivityFlow] =
 
-    flowList.find(_.activity == activity ) match {
+    workflowList.find(_.activity == activity ) match {
       case None => Left(ActivityNotFoundError(s"Current activity: ${activity.name} can't be found"))
       case Some(act: BaseActivityFlow )=> Right(act)
     }
@@ -211,7 +211,7 @@ case class Flow(
 
     activityFlow match {
       case act: ActivityFlow => act.actionFlows.find(_.action == action) match {
-        case Some(af: ActionFlow) => flowList.find(_.activity == af.activity) match {
+        case Some(af: ActionFlow) => workflowList.find(_.activity == af.activity) match {
           case Some(_: StayStillActivityFlow) => Right(activityFlow)
           case Some(value) => Right(value)
           case _  => Left(ActivityNotFoundError(s"Next activity cannot found by action: ${action.name}; current activity ${activityFlow.activity.name}"))

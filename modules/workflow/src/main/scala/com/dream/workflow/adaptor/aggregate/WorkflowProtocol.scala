@@ -3,7 +3,7 @@ package com.dream.workflow.adaptor.aggregate
 import java.util.UUID
 
 import com.dream.common.Protocol.{CmdRequest, CmdResponse}
-import com.dream.workflow.domain.Flow.BaseActivityFlow
+import com.dream.workflow.domain.Workflow.BaseActivityFlow
 
 object WorkflowProtocol {
 
