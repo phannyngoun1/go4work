@@ -6,6 +6,7 @@ import akka.actor.{ActorLogging, Props}
 import akka.persistence._
 import com.dream.workflow.domain.FlowEvent.FlowCreated
 import com.dream.workflow.domain.Item
+import com.dream.workflow.entity.item.ItemProtocol.NewItemCmdRequest
 
 object ItemEntity {
 
@@ -40,7 +41,8 @@ class ItemEntity  extends PersistentActor with ActorLogging {
   }
 
   override def receiveCommand: Receive = {
-    case cmd:
+    case cmd: NewItemCmdRequest =>
+
   }
 
   override def persistenceId: String = s"$AggregateName-${self.path.name}"

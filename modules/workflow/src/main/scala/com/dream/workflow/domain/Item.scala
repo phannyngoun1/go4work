@@ -12,3 +12,12 @@ case class Item (
   desc: String,
   workflowId: UUID
 )
+
+sealed trait ItemEvent
+
+case class ItemCreated(
+  id: UUID,
+  name: String,
+  desc: String,
+  workflowId: UUID
+) extends ItemEvent
