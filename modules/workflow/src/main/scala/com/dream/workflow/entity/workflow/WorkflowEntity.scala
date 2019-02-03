@@ -1,15 +1,15 @@
-package com.dream.workflow.adaptor.aggregate
+package com.dream.workflow.entity.workflow
 
 import java.util.UUID
 
 import akka.Done
 import akka.actor.{ActorLogging, Props}
 import akka.persistence._
+import cats.implicits._
+import WorkflowProtocol.CreateWorkflowCmdRequest
 import com.dream.workflow.domain.FlowEvent.FlowCreated
 import com.dream.workflow.domain.{Workflow, WorkflowError}
-import cats.implicits._
-import com.dream.workflow.adaptor.aggregate.WorkflowProtocol.CreateWorkflowCmdRequest
-
+import com.dream.workflow.entity.processinstance.ProcessInstanceEntity
 
 object WorkflowEntity {
 

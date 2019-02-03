@@ -3,8 +3,9 @@ package com.dream.workflow.adaptor.aggregate
 import java.util.UUID
 
 import akka.actor.{Actor, ActorContext, ActorRef}
-import com.dream.workflow.adaptor.aggregate.ProcessInstanceProtocol.ProcessInstanceCmdRequest
-import com.dream.workflow.adaptor.aggregate.WorkflowProtocol.WorkFlowCmdRequest
+import com.dream.workflow.entity.processinstance.ProcessInstanceEntity
+import com.dream.workflow.entity.processinstance.ProcessInstanceProtocol.ProcessInstanceCmdRequest
+import com.dream.workflow.entity.workflow.WorkflowProtocol.WorkFlowCmdRequest
 
 trait AggregatesLookup {
 

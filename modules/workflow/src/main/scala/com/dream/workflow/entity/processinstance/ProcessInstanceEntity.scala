@@ -1,10 +1,10 @@
-package com.dream.workflow.adaptor.aggregate
+package com.dream.workflow.entity.processinstance
 
 import java.util.UUID
 
 import akka.actor.{ActorLogging, Props}
 import akka.persistence.PersistentActor
-import com.dream.workflow.domain.ProcessInstance
+import com.dream.workflow.domain.{ProcessInstance, Workflow}
 
 object ProcessInstanceEntity {
 

@@ -1,4 +1,4 @@
-package com.dream.workflow.adaptor.aggregate
+package com.dream.workflow.entity.processinstance
 
 import java.util.UUID
 

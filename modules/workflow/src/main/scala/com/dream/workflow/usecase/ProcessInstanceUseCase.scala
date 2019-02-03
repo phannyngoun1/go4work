@@ -79,7 +79,7 @@ class ProcessInstanceUseCase(processInstanceAggregateFlows: ProcessInstanceAggre
     val bcast = b.add(Broadcast[CreateInstanceCmdRequest](1))
     val merge = b.add(Merge[Int](1))
 
-    val convertToGerFlowRequest = Flow[CreateInstanceCmdRequest].map(cmd => GetFlowCmdRequest(cmd.u) )
+    val convertToGerFlowRequest = Flow[CreateInstanceCmdRequest].map(cmd => GetFlowCmdRequest(cmd.) )
 
     //bcast.out(0)  ~>  ~> merge
 
