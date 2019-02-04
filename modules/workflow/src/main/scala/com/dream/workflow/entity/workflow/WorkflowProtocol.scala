@@ -3,7 +3,8 @@ package com.dream.workflow.entity.workflow
 import java.util.UUID
 
 import com.dream.common.Protocol.{CmdRequest, CmdResponse}
-import com.dream.workflow.domain.Workflow.BaseActivityFlow
+import com.dream.workflow.domain.Workflow
+import com.dream.workflow.domain.Workflow.{BaseActivityFlow, WorkflowError}
 
 object WorkflowProtocol {
 
@@ -11,14 +12,25 @@ object WorkflowProtocol {
     val id: UUID
   }
 
-  sealed trait WorkFlowCmdResponse extends CmdResponse {
-    val id: UUID
-  }
+  sealed trait WorkFlowCmdResponse extends CmdResponse
 
   case class CreateWorkflowCmdRequest(
     id: UUID,
     initialActivityName: String,
     flowList: Seq[BaseActivityFlow]
   ) extends WorkFlowCmdRequest
+
+  case class GetWorkflowCmdRequest(
+    id: UUID
+  ) extends WorkFlowCmdRequest
+
+  case class GetWorkflowCmdSuccess(
+    workflow: Workflow
+  ) extends WorkFlowCmdResponse
+
+  case class GetWorkflowCmdFailed(
+    id: UUID,
+    workflowError: WorkflowError
+  )extends WorkFlowCmdResponse
 
 }

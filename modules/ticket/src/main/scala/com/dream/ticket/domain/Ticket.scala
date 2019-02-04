@@ -1,6 +1,5 @@
 package com.dream.ticket.domain
 
-import com.dream.ticket.domain.Flow.{ActivityHis, BaseActivity}
 import play.api.libs.json._
 
 case class Ticket(
@@ -13,16 +12,7 @@ case class Ticket(
 
   source: TicketSourceType,
 
-  ticketType: TicketType,
-
-  submitter: Participant,
-
-  assignedTo: Participant,
-
-  currActivity: BaseActivity,
-
-  activityHis: Seq[ActivityHis] = Seq.empty
-
+  ticketType: TicketType
 )
 
 object Ticket {

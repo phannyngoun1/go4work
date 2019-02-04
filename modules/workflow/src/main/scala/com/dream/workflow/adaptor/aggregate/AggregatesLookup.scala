@@ -1,8 +1,8 @@
 package com.dream.workflow.adaptor.aggregate
 
-import java.util.UUID
-
-import akka.actor.{Actor, ActorContext, ActorRef}
+import akka.actor.{Actor, ActorContext}
+import com.dream.workflow.entity.item.ItemEntity
+import com.dream.workflow.entity.item.ItemProtocol.ItemCmdRequest
 import com.dream.workflow.entity.processinstance.ProcessInstanceEntity
 import com.dream.workflow.entity.processinstance.ProcessInstanceProtocol.ProcessInstanceCmdRequest
 import com.dream.workflow.entity.workflow.WorkflowProtocol.WorkFlowCmdRequest
@@ -15,37 +15,22 @@ trait AggregatesLookup {
     case cmd: ProcessInstanceCmdRequest =>
       context
         .child(ProcessInstanceEntity.name(cmd.id))
-        .fold(createAndForwardProcessInstanceCmd(cmd, cmd.id))(forwardProcessInstanceCmd(cmd))
+        .fold(
+          context.actorOf(ProcessInstanceEntity.prop, ProcessInstanceEntity.name(cmd.id )) forward cmd
+        )(_ forward cmd)
 
     case cmd: WorkFlowCmdRequest =>
       context
         .child(ProcessInstanceEntity.name(cmd.id))
-        .fold(createAndForwardWorkflowCmd(cmd, cmd.id))(forwardWorkflowCmd(cmd))
+        .fold(
+          context.actorOf(ProcessInstanceEntity.prop, ProcessInstanceEntity.name(cmd.id)) forward cmd
+        )(_ forward cmd)
+    case cmd: ItemCmdRequest =>
+      context
+      .child(ItemEntity.name(cmd.id))
+      .fold (
+        context.actorOf(ItemEntity.prop, ItemEntity.name(cmd.id)) forward cmd
+      )(_ forward cmd)
   }
-
-
-  private def forwardWorkflowCmd(cmd: WorkFlowCmdRequest)(ref: ActorRef): Unit = {
-    ref forward cmd
-  }
-
-  private def createAndForwardWorkflowCmd(cmd: WorkFlowCmdRequest, uuId: UUID) = {
-    createWorkflowAggregate(uuId) forward cmd
-  }
-
-  private def createWorkflowAggregate(uuId: UUID) =
-    context.actorOf(ProcessInstanceEntity.prop, ProcessInstanceEntity.name(uuId  ) )
-
-
-  /*Process instance*/
-  private def forwardProcessInstanceCmd(cmd: ProcessInstanceCmdRequest)(ref: ActorRef): Unit = {
-    ref forward cmd
-  }
-
-  private def createAndForwardProcessInstanceCmd(cmd: ProcessInstanceCmdRequest, uuId: UUID) = {
-    createProcessInstanceAggregate(uuId) forward cmd
-  }
-
-  private def createProcessInstanceAggregate(uuId: UUID) =
-    context.actorOf(ProcessInstanceEntity.prop, ProcessInstanceEntity.name(uuId  ) )
 
 }

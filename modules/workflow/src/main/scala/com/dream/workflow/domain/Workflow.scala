@@ -9,9 +9,17 @@ import play.api.libs.json._
 
 object Workflow {
 
-  sealed abstract class FlowError(message: String)
+  sealed trait WorkflowError {
+    val message: String
+  }
 
-  case class ActivityNotFoundError(message: String) extends FlowError(message)
+  case class DefaultWorkflowError(message: String) extends WorkflowError
+
+  case class ActivityNotFoundError(message: String) extends WorkflowError
+
+  case class InvalidWorkflowStateError(id: Option[UUID] = None ) extends WorkflowError {
+    override val message: String = s"Invalid state${id.fold("")(id => s":id = ${id.toString}")}"
+  }
 
   sealed trait BaseActivity {
     def name: String
@@ -39,7 +47,6 @@ object Workflow {
     implicit val jsonFormat: OFormat[BaseAction] = derived.oformat[BaseAction]()
   }
 
-
   sealed trait PayLoad {
 
   }
@@ -58,7 +65,6 @@ object Workflow {
     implicit val jsonFormat: OFormat[Params] = derived.oformat[Params]()
   }
 
-
   case class DefaultFlowParams(value: String) extends Params
 
   sealed trait BaseActivityFlow {
@@ -74,6 +80,10 @@ object Workflow {
     participant: Participant,
     action: BaseAction
   )
+
+  object ActionHis {
+    implicit val format: Format[ActionHis] = Json.format
+  }
 
   case class ActivityHis(
     activity: BaseActivity,
@@ -176,6 +186,11 @@ object Workflow {
   }
 }
 
+
+object WorkFlow {
+  implicit val format: Format[Workflow] = Json.format
+}
+
 case class Workflow(
   id: UUID,
   initialActivityName: String,
@@ -190,7 +205,7 @@ case class Workflow(
     */
   //TODO: check for authorized participant
 
-  def nextActivity(doAction: DoAction, noneParticipantAllowed: Boolean): Either[FlowError, BaseActivityFlow ] = {
+  def nextActivity(doAction: DoAction, noneParticipantAllowed: Boolean): Either[WorkflowError, BaseActivityFlow ] = {
 
     for {
       currAct <- checkCurrentActivity(doAction.onActivity)
@@ -200,14 +215,14 @@ case class Workflow(
     //Right(NaActivityFlow())
   }
 
-  private def checkCurrentActivity(activity: BaseActivity) : Either[FlowError, BaseActivityFlow] =
+  private def checkCurrentActivity(activity: BaseActivity) : Either[WorkflowError, BaseActivityFlow] =
 
     workflowList.find(_.activity == activity ) match {
       case None => Left(ActivityNotFoundError(s"Current activity: ${activity.name} can't be found"))
       case Some(act: BaseActivityFlow )=> Right(act)
     }
 
-  private def nextActivity(participant: Participant, action: BaseAction)(activityFlow: BaseActivityFlow): Either[FlowError, BaseActivityFlow] =
+  private def nextActivity(participant: Participant, action: BaseAction)(activityFlow: BaseActivityFlow): Either[WorkflowError, BaseActivityFlow] =
 
     activityFlow match {
       case act: ActivityFlow => act.actionFlows.find(_.action == action) match {
@@ -223,5 +238,7 @@ case class Workflow(
     }
 }
 
-case class WorkflowError(message: String) extends FlowError(message = message)
+
+
+
 

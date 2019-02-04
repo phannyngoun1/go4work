@@ -6,9 +6,11 @@ import akka.Done
 import akka.actor.{ActorLogging, Props}
 import akka.persistence._
 import cats.implicits._
-import WorkflowProtocol.CreateWorkflowCmdRequest
+import WorkflowProtocol._
+import com.dream.common.EntityState
 import com.dream.workflow.domain.FlowEvent.FlowCreated
-import com.dream.workflow.domain.{Workflow, WorkflowError}
+import com.dream.workflow.domain.Workflow._
+import com.dream.workflow.domain._
 import com.dream.workflow.entity.processinstance.ProcessInstanceEntity
 
 object WorkflowEntity {
@@ -22,10 +24,9 @@ object WorkflowEntity {
   implicit class EitherOps(val self: Either[WorkflowError, Workflow]) {
     def toSomeOrThrow: Option[Workflow] = self.fold(error => throw new IllegalStateException(error.message), Some(_))
   }
-
 }
 
-class WorkflowEntity extends PersistentActor with ActorLogging {
+class WorkflowEntity extends PersistentActor with ActorLogging  with EntityState[WorkflowError, Workflow]{
 
   import WorkflowEntity._
   var state: Option[Workflow] = None
@@ -39,6 +40,16 @@ class WorkflowEntity extends PersistentActor with ActorLogging {
         true
       )
     )
+
+  protected def foreachState(f: (Workflow) => Unit): Unit =
+    Either.fromOption(state, InvalidWorkflowStateError()).filterOrElse(_.isActive, InvalidWorkflowStateError()).foreach(f)
+
+  override protected def mapState(f: Workflow => Either[WorkflowError, Workflow]): Either[WorkflowError, Workflow] =
+    for {
+      state    <- Either.fromOption(state, InvalidWorkflowStateError())
+      newState <- f(state)
+    } yield newState
+
 
   override def receiveRecover: Receive = {
 
@@ -60,12 +71,15 @@ class WorkflowEntity extends PersistentActor with ActorLogging {
       state = applyState(event).toSomeOrThrow
       sender() ! Done
     }
+    case cmd: GetWorkflowCmdRequest if equalsId(cmd.id)(state, _.canEqual(cmd.id)) =>
+      foreachState { state =>
+        sender() ! GetWorkflowCmdSuccess(state)
+      }
     case SaveSnapshotSuccess(metadata) =>
       log.debug(s"receiveCommand: SaveSnapshotSuccess succeeded: $metadata")
   }
 
   override def persistenceId: String = s"$AggregateName-${self.path.name}"
-
 
 
 }

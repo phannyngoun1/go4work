@@ -1,7 +1,7 @@
 package com.dream.ticket.usecase.port
 
 import akka.{Done, NotUsed}
-import akka.stream.scaladsl.{Flow, Source}
+import akka.stream.scaladsl.{Flow}
 
 trait TicketAggregateReadModelFlows {
 
