@@ -2,8 +2,6 @@ package com.dream.workflow.domain
 
 import java.util.UUID
 
-import com.dream.workflow.domain.Workflow.BaseActivityFlow
-
 object FlowEvent {
 
   sealed trait FlowEvent {

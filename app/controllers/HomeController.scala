@@ -4,11 +4,11 @@ import java.util.UUID
 
 import akka.actor.ActorSystem
 import com.dream.workflow.adaptor.aggregate.{ItemAggregateFlowsImpl, LocalEntityAggregates, WorkflowAggregateFlowsImpl}
-import com.dream.workflow.domain.Workflow.BaseActivityFlow
+import com.dream.workflow.domain.BaseActivityFlow
 import com.dream.workflow.model.WorkflowModel.{CreateItemJson, ItemJson}
 import com.dream.workflow.usecase.{ItemAggregateUseCase, WorkflowAggregateUseCase}
 import com.dream.workflow.usecase.ItemAggregateUseCase.Protocol._
-import com.dream.workflow.usecase.WorkflowAggregateUseCase.Protocol.{CreateWorkflowCmdRequest, GetWorkflowCmdRequest, CreateWorkflowCmdSuccess}
+import com.dream.workflow.usecase.WorkflowAggregateUseCase.Protocol.{CreateWorkflowCmdRequest, CreateWorkflowCmdSuccess, GetWorkflowCmdRequest}
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json._
 import play.api.mvc._
@@ -51,14 +51,14 @@ class HomeController @Inject()(cc: ControllerComponents)
   def createWorkflow = Action.async { implicit request =>
     val workflowList: Seq[BaseActivityFlow] = Seq.empty;
     workflowAggregateUseCase.createWorkflow(CreateWorkflowCmdRequest(UUID.randomUUID(), "start", workflowList)).map {
-      case res: CreateWorkflowCmdSuccess => Ok(Json.toJson(res))
+      case res: CreateWorkflowCmdSuccess =>  Ok(s"${res.id}")
       case _ => Ok("Failed")
     }
   }
 
   def getWorkflow(id: String) = Action.async { implicit request =>
     workflowAggregateUseCase.getWorkflow(GetWorkflowCmdRequest(UUID.fromString(id))).map {
-      case res: CreateWorkflowCmdSuccess => Ok(Json.toJson(res))
+      case res: CreateWorkflowCmdSuccess => Ok(s"${res.id}")
       case _ => Ok("Failed")
     }
   }

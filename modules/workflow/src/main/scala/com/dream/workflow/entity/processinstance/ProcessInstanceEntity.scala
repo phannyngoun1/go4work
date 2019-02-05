@@ -4,7 +4,7 @@ import java.util.UUID
 
 import akka.actor.{ActorLogging, Props}
 import akka.persistence.PersistentActor
-import com.dream.workflow.domain.{ProcessInstance, Workflow}
+import com.dream.workflow.domain.{ProcessInstance, Flow}
 
 object ProcessInstanceEntity {
 

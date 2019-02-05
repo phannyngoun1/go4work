@@ -6,8 +6,8 @@ import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, Materializer, OverflowStrategy}
 import akka.stream.scaladsl.{Keep, Source, SourceQueueWithComplete}
 import com.dream.common.UseCaseSupport
-import com.dream.workflow.domain.Workflow
-import com.dream.workflow.domain.Workflow.{BaseActivityFlow, WorkflowError}
+import com.dream.workflow.domain.Flow
+import com.dream.workflow.domain.{BaseActivityFlow, WorkflowError}
 import com.dream.workflow.usecase.port.WorkflowAggregateFlows
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -33,7 +33,7 @@ object WorkflowAggregateUseCase {
     ) extends WorkflowCmdRequest
 
     abstract class GetWorkflowCmdResponse() extends WorkflowCmdResponse
-    case class GetWorkflowCmdSuccess(flow: Workflow) extends GetWorkflowCmdResponse
+    case class GetWorkflowCmdSuccess(flow: Flow) extends GetWorkflowCmdResponse
     case class GetWorkflowCmdFailed(id: UUID, error: WorkflowError) extends GetWorkflowCmdResponse
   }
 }

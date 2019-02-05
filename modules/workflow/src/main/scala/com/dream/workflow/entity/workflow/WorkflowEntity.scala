@@ -9,7 +9,6 @@ import cats.implicits._
 import WorkflowProtocol._
 import com.dream.common.EntityState
 import com.dream.workflow.domain.FlowEvent.FlowCreated
-import com.dream.workflow.domain.Workflow._
 import com.dream.workflow.domain._
 import com.dream.workflow.entity.processinstance.ProcessInstanceEntity
 
@@ -21,19 +20,19 @@ object WorkflowEntity {
 
   def name(uuId: UUID): String = uuId.toString
 
-  implicit class EitherOps(val self: Either[WorkflowError, Workflow]) {
-    def toSomeOrThrow: Option[Workflow] = self.fold(error => throw new IllegalStateException(error.message), Some(_))
+  implicit class EitherOps(val self: Either[WorkflowError, Flow]) {
+    def toSomeOrThrow: Option[Flow] = self.fold(error => throw new IllegalStateException(error.message), Some(_))
   }
 }
 
-class WorkflowEntity extends PersistentActor with ActorLogging  with EntityState[WorkflowError, Workflow]{
+class WorkflowEntity extends PersistentActor with ActorLogging  with EntityState[WorkflowError, Flow]{
 
   import WorkflowEntity._
-  var state: Option[Workflow] = None
+  var state: Option[Flow] = None
 
-  private def applyState(event: FlowCreated): Either[WorkflowError, Workflow] =
+  private def applyState(event: FlowCreated): Either[WorkflowError, Flow] =
     Either.right(
-      Workflow(
+      Flow(
         event.id,
         event.initialActivityName,
         event.flowList,
@@ -41,10 +40,10 @@ class WorkflowEntity extends PersistentActor with ActorLogging  with EntityState
       )
     )
 
-  protected def foreachState(f: (Workflow) => Unit): Unit =
+  protected def foreachState(f: (Flow) => Unit): Unit =
     Either.fromOption(state, InvalidWorkflowStateError()).filterOrElse(_.isActive, InvalidWorkflowStateError()).foreach(f)
 
-  override protected def mapState(f: Workflow => Either[WorkflowError, Workflow]): Either[WorkflowError, Workflow] =
+  override protected def mapState(f: Flow => Either[WorkflowError, Flow]): Either[WorkflowError, Flow] =
     for {
       state    <- Either.fromOption(state, InvalidWorkflowStateError())
       newState <- f(state)
@@ -53,7 +52,7 @@ class WorkflowEntity extends PersistentActor with ActorLogging  with EntityState
 
   override def receiveRecover: Receive = {
 
-    case SnapshotOffer(_, _state: Workflow) =>
+    case SnapshotOffer(_, _state: Flow) =>
       state = Some(_state)
     case SaveSnapshotSuccess(metadata) =>
       log.info(s"receiveRecover: SaveSnapshotSuccess succeeded: $metadata")
