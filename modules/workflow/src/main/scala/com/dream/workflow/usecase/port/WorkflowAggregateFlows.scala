@@ -2,10 +2,13 @@ package com.dream.workflow.usecase.port
 
 import akka.NotUsed
 import akka.stream.scaladsl.Flow
-import com.dream.workflow.usecase.ProcessInstanceAggregateUseCase.Protocol.{GetFlowCmdRequest, GetFlowCmdResponse}
+import com.dream.workflow.usecase.WorkflowAggregateUseCase.Protocol._
 
 trait WorkflowAggregateFlows {
-  def getWorkflow:  Flow[GetFlowCmdRequest, GetFlowCmdResponse, NotUsed]
-  //Aggregate
+
+  def createWorkflow: Flow[CreateWorkflowCmdRequest, CreateWorkflowCmdResponse, NotUsed]
+
+  def getWorkflow:  Flow[GetWorkflowCmdRequest, GetWorkflowCmdResponse, NotUsed]
+
 
 }

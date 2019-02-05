@@ -20,6 +20,10 @@ object WorkflowProtocol {
     flowList: Seq[BaseActivityFlow]
   ) extends WorkFlowCmdRequest
 
+  abstract class CreateWorkflowCmdResponse() extends WorkFlowCmdResponse
+  case class CreateWorkflowCmdSuccess(id: UUID) extends CreateWorkflowCmdResponse
+  case class CreateWorkflowCmdFailed(id: UUID, workflowError: WorkflowError) extends CreateWorkflowCmdResponse
+
   case class GetWorkflowCmdRequest(
     id: UUID
   ) extends WorkFlowCmdRequest

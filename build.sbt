@@ -41,7 +41,7 @@ lazy val ticket =  (project in file("modules/ticket"))
       "com.typesafe.akka" %% "akka-persistence" % Common.akkaVersion,
       "com.typesafe.akka" %% "akka-stream" % Common.akkaVersion,
       "com.typesafe.akka" %% "akka-slf4j" % "2.5.19",
-      //"ch.qos.logback" % "logback-classic" % "1.2.3",
+      "ch.qos.logback" % "logback-classic" % "1.2.3",
       "com.github.dnvriend" %% "akka-persistence-jdbc" % "3.4.0",
       "org.iq80.leveldb" % "leveldb" % "0.7",
       "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8",
@@ -61,7 +61,7 @@ lazy val workflow =  (project in file("modules/workflow"))
       "com.typesafe.akka" %% "akka-persistence" % Common.akkaVersion,
       "com.typesafe.akka" %% "akka-stream" % Common.akkaVersion,
       "com.typesafe.akka" %% "akka-slf4j" % "2.5.19",
-      //"ch.qos.logback" % "logback-classic" % "1.2.3",
+      "ch.qos.logback" % "logback-classic" % "1.2.3",
       "com.github.dnvriend" %% "akka-persistence-jdbc" % "3.4.0",
       "org.iq80.leveldb" % "leveldb" % "0.7",
       "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8",
@@ -75,8 +75,8 @@ lazy val workflow =  (project in file("modules/workflow"))
 lazy val root = (project in file("."))
   .settings(Common.projectSettings)
   .enablePlugins(PlayScala)
-  .aggregate(slick, workflow , ticket)
-  .dependsOn(slick, workflow, ticket)
+  .aggregate(workflow , ticket)
+  .dependsOn(workflow, ticket)
 
 
 scalacOptions += "-Ypartial-unification"

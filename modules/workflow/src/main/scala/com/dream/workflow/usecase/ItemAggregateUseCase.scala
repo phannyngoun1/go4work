@@ -7,7 +7,6 @@ import akka.stream.scaladsl.{Keep, Source, SourceQueueWithComplete}
 import akka.stream.{ActorMaterializer, Materializer, OverflowStrategy}
 import com.dream.common.UseCaseSupport
 import com.dream.workflow.domain.Item.ItemError
-import com.dream.workflow.usecase.ItemAggregateUseCase.Protocol.{CreateItemCmdRequest, CreateItemCmdResponse}
 import com.dream.workflow.usecase.port.ItemAggregateFlows
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -15,6 +14,7 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 object ItemAggregateUseCase {
 
   object Protocol {
+
     sealed trait ItemCmdResponse
     sealed trait ItemCmdRequest
 
@@ -52,7 +52,7 @@ object ItemAggregateUseCase {
 class ItemAggregateUseCase(itemAggregateFlows: ItemAggregateFlows)(implicit system: ActorSystem) extends UseCaseSupport {
 
   import UseCaseSupport._
-  import ProcessInstanceAggregateUseCase.Protocol._
+  import ItemAggregateUseCase.Protocol._
 
   implicit val mat: Materializer = ActorMaterializer()
 
@@ -62,11 +62,20 @@ class ItemAggregateUseCase(itemAggregateFlows: ItemAggregateFlows)(implicit syst
     offerToQueue(createItemQueue)(request, Promise())
   }
 
+  def getItem(request: GetItemCmdRequest)(implicit ec: ExecutionContext): Future[GetItemCmdResponse] = {
+    offerToQueue(getItemQueue)(request, Promise())
+  }
 
   private val createItemQueue: SourceQueueWithComplete[(CreateItemCmdRequest, Promise[CreateItemCmdResponse])] =
     Source.queue[(CreateItemCmdRequest, Promise[CreateItemCmdResponse])](bufferSize, OverflowStrategy.dropNew)
       .via(itemAggregateFlows.createItem.zipPromise)
       .toMat(completePromiseSink)(Keep.left)
       .run()
+
+  private val getItemQueue: SourceQueueWithComplete[(GetItemCmdRequest, Promise[GetItemCmdResponse])] =
+    Source.queue[(GetItemCmdRequest, Promise[GetItemCmdResponse])](bufferSize, OverflowStrategy.dropNew)
+    .via(itemAggregateFlows.getItem.zipPromise)
+    .toMat(completePromiseSink)(Keep.left)
+    .run()
 
 }

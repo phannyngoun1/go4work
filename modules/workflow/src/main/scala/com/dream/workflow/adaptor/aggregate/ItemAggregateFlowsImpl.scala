@@ -26,7 +26,6 @@ class ItemAggregateFlowsImpl(aggregateRef: ActorRef) extends ItemAggregateFlows 
       }
   }
 
-
   override def getItem: Flow[Protocol.GetItemCmdRequest, Protocol.GetItemCmdResponse, NotUsed] =
     Flow[Protocol.GetItemCmdRequest]
       .map(req => GetItemCmdRequest(req.id))

@@ -26,7 +26,7 @@ object ItemEntity {
 class Test extends Actor with ActorLogging {
   override def receive: Receive = {
     case cmd: NewItemCmdRequest => {
-      println("item created")
+      log.debug("item created")
       sender() ! NewItemCmdSuccess(cmd.id)
     }
   }
@@ -61,17 +61,19 @@ class ItemEntity extends PersistentActor with ActorLogging  with EntityState[Ite
 
   override def receiveRecover: Receive = {
     case SnapshotOffer(_, _state: Item) =>
+      println(s"SnapshotOffer ${_state}")
       state = Some(_state)
 
     case SaveSnapshotSuccess(metadata) =>
-      log.info(s"receiveRecover: SaveSnapshotSuccess succeeded: $metadata")
+      log.debug(s"receiveRecover: SaveSnapshotSuccess succeeded: $metadata")
     case SaveSnapshotFailure(metadata, reason) ⇒
-      log.info(s"SaveSnapshotFailure: SaveSnapshotSuccess failed: $metadata, ${reason}")
+      log.debug(s"SaveSnapshotFailure: SaveSnapshotSuccess failed: $metadata, ${reason}")
     case event: ItemCreated =>
+      println(s"replay event: $event")
       state = applyState(event).toSomeOrThrow
     case RecoveryCompleted =>
-      log.info(s"Recovery completed: $persistenceId")
-    case _ => log.info("Other")
+      println(s"Recovery completed: $persistenceId")
+    case _ => log.debug("Other")
 
   }
 
