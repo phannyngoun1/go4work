@@ -4,12 +4,13 @@ import java.util.UUID
 
 import akka.actor.ActorSystem
 import com.dream.workflow.adaptor.aggregate.{ItemAggregateFlowsImpl, LocalEntityAggregates, WorkflowAggregateFlowsImpl}
-import com.dream.workflow.domain.BaseActivityFlow
+import com.dream.workflow.domain._
 import com.dream.workflow.model.WorkflowModel.{CreateItemJson, ItemJson}
 import com.dream.workflow.usecase.{ItemAggregateUseCase, WorkflowAggregateUseCase}
 import com.dream.workflow.usecase.ItemAggregateUseCase.Protocol._
 import com.dream.workflow.usecase.WorkflowAggregateUseCase.Protocol.{CreateWorkflowCmdRequest, CreateWorkflowCmdSuccess, GetWorkflowCmdRequest}
 import javax.inject.{Inject, Singleton}
+import com.dream.workflow.domain.{Action => FAction}
 import play.api.libs.json._
 import play.api.mvc._
 
@@ -49,8 +50,56 @@ class HomeController @Inject()(cc: ControllerComponents)
   }
 
   def createWorkflow = Action.async { implicit request =>
-    val workflowList: Seq[BaseActivityFlow] = Seq.empty;
-    workflowAggregateUseCase.createWorkflow(CreateWorkflowCmdRequest(UUID.randomUUID(), "start", workflowList)).map {
+
+    val startActionFlow = ActionFlow(
+      action = StartAction(),
+      activity = "Ticketing"
+    )
+
+    val startActivityFlow = ActivityFlow(
+      activity = StartActivity(),
+      participants = List.empty,
+      actionFlows = List(startActionFlow)
+    )
+
+
+    val editTicketActionFlow = ActionFlow(
+      action = FAction("Edit"),
+      activity = "StayStill"
+    )
+
+    val closeTicketActionFlow = ActionFlow(
+      action = FAction("Close"),
+      activity = "Done"
+    )
+
+    val assignTicketActionFlow = ActionFlow(
+      action = FAction("Assign"),
+      activity = "StayStill"
+    )
+
+    val addCommentActionFlow = ActionFlow(
+      action = FAction("Comment"),
+      activity = "StayStill"
+    )
+
+    val ticketActivityFlow = ActivityFlow(
+      activity = Activity("Ticketing"),
+      participants = List.empty,
+      actionFlows = List(
+        editTicketActionFlow,
+        closeTicketActionFlow,
+        assignTicketActionFlow,
+        addCommentActionFlow
+      )
+    )
+
+    val workflowList: Seq[BaseActivityFlow] = Seq(
+      startActivityFlow,
+      ticketActivityFlow
+    )
+
+    workflowAggregateUseCase.createWorkflow(CreateWorkflowCmdRequest(UUID.randomUUID(), "Start", workflowList)).map {
       case res: CreateWorkflowCmdSuccess =>  Ok(s"${res.id}")
       case _ => Ok("Failed")
     }

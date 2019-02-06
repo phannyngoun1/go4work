@@ -5,6 +5,7 @@ import com.dream.workflow.entity.item.ItemEntity
 import com.dream.workflow.entity.item.ItemProtocol.ItemCmdRequest
 import com.dream.workflow.entity.processinstance.ProcessInstanceEntity
 import com.dream.workflow.entity.processinstance.ProcessInstanceProtocol.ProcessInstanceCmdRequest
+import com.dream.workflow.entity.workflow.WorkflowEntity
 import com.dream.workflow.entity.workflow.WorkflowProtocol.WorkFlowCmdRequest
 
 trait AggregatesLookup {
@@ -21,9 +22,9 @@ trait AggregatesLookup {
 
     case cmd: WorkFlowCmdRequest =>
       context
-        .child(ProcessInstanceEntity.name(cmd.id))
+        .child(WorkflowEntity.name(cmd.id))
         .fold(
-          context.actorOf(ProcessInstanceEntity.prop, ProcessInstanceEntity.name(cmd.id)) forward cmd
+          context.actorOf(WorkflowEntity.prop, WorkflowEntity.name(cmd.id)) forward cmd
         )(_ forward cmd)
     case cmd: ItemCmdRequest =>
       context

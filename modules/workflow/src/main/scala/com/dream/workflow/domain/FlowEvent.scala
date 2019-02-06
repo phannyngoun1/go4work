@@ -2,6 +2,8 @@ package com.dream.workflow.domain
 
 import java.util.UUID
 
+import play.api.libs.json.{Format, Json}
+
 object FlowEvent {
 
   sealed trait FlowEvent {
@@ -13,5 +15,10 @@ object FlowEvent {
     initialActivityName: String,
     flowList: Seq[BaseActivityFlow],
   ) extends FlowEvent
+
+
+  object FlowCreated {
+    implicit val format: Format[FlowCreated] = Json.format
+  }
 
 }

@@ -83,9 +83,10 @@ object ActionHis {
 }
 
 case class ActivityHis(
+  id: UUID,
   activity: BaseActivity,
   actionHis: Seq[ActionHis],
-  payLoadId: UUID,
+  description: String,
   actionDate: Instant = Instant.now()
 )
 
@@ -93,7 +94,8 @@ object ActivityHis {
   implicit val format: Format[ActivityHis] = Json.format
 }
 
-case class ActionFlow(action: BaseAction, activity: BaseActivity )
+case class ActionFlow(action: BaseAction, activity: String )
+
 object ActionFlow {
   implicit val format: Format[ActionFlow] = Json.format
 }
@@ -107,6 +109,8 @@ object ActivityFlow {
 /**
   * Predefined actions
   */
+
+
 
 case class StartAction() extends BaseAction {
   override val name: String = "Start"
@@ -161,6 +165,8 @@ case class Activity(name: String) extends BaseActivity
 object Activity {
   implicit val format: Format[Activity] = Json.format
 }
+
+
 
 case class Action(name: String) extends BaseAction
 

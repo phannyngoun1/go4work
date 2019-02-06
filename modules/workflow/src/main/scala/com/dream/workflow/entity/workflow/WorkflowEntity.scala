@@ -14,7 +14,7 @@ import com.dream.workflow.entity.processinstance.ProcessInstanceEntity
 
 object WorkflowEntity {
 
-  def prop = Props(new ProcessInstanceEntity)
+  def prop = Props(new WorkflowEntity)
 
   final val AggregateName  = "work_flow"
 
@@ -68,7 +68,7 @@ class WorkflowEntity extends PersistentActor with ActorLogging  with EntityState
   override def receiveCommand: Receive = {
     case cmd: CreateWorkflowCmdRequest => persist(FlowCreated(cmd.id, cmd.initialActivityName, cmd.flowList)) { event =>
       state = applyState(event).toSomeOrThrow
-      sender() ! Done
+      sender() ! CreateWorkflowCmdSuccess(event.id)
     }
     case cmd: GetWorkflowCmdRequest if equalsId(cmd.id)(state, _.canEqual(cmd.id)) =>
       foreachState { state =>
