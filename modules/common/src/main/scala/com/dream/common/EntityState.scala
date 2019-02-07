@@ -2,7 +2,7 @@ package com.dream.common
 
 import java.util.UUID
 
-trait EntityState[Error ,T] {
+trait EntityState[E ,T] {
 
   protected def foreachState(f: (T) => Unit): Unit
 
@@ -15,7 +15,7 @@ trait EntityState[Error ,T] {
     }
 
   protected def mapState(
-    f: (T) => Either[Error, T]
-  ): Either[Error, T]
+    f: (T) => Either[E, T]
+  ): Either[E, T]
 
 }

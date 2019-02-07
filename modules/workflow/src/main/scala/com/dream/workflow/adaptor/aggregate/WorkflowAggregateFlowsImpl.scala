@@ -10,6 +10,7 @@ import com.dream.workflow.usecase.WorkflowAggregateUseCase.Protocol
 import com.dream.workflow.usecase.port.WorkflowAggregateFlows
 
 import scala.concurrent.duration._
+import scala.language.postfixOps
 
 class WorkflowAggregateFlowsImpl(aggregateRef: ActorRef) extends WorkflowAggregateFlows {
 
@@ -17,7 +18,7 @@ class WorkflowAggregateFlowsImpl(aggregateRef: ActorRef) extends WorkflowAggrega
 
   override def createWorkflow: Flow[Protocol.CreateWorkflowCmdRequest, Protocol.CreateWorkflowCmdResponse, NotUsed] =
     Flow[Protocol.CreateWorkflowCmdRequest]
-      .map(req => CreateWorkflowCmdRequest(req.id, req.initialActivityName, req.workflowList))
+      .map(req => CreateWorkflowCmdRequest(req.id, req.initialActivity, req.workflowList))
       .mapAsync(1)(aggregateRef ? _)
       .map {
         case res: CreateWorkflowCmdSuccess => Protocol.CreateWorkflowCmdSuccess(res.id)

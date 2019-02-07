@@ -10,6 +10,7 @@ import com.dream.workflow.usecase.ItemAggregateUseCase.Protocol
 import com.dream.workflow.usecase.port.ItemAggregateFlows
 
 import scala.concurrent.duration._
+import scala.language.postfixOps
 
 class ItemAggregateFlowsImpl(aggregateRef: ActorRef) extends ItemAggregateFlows {
 

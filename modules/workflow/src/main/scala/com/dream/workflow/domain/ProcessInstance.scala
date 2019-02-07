@@ -2,7 +2,7 @@ package com.dream.workflow.domain
 
 import java.util.UUID
 
-import com.dream.workflow.domain.ProcessInstance.{InstanceType, Task}
+import com.dream.workflow.domain.ProcessInstance.Task
 
 
 object ProcessInstance {

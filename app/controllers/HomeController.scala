@@ -49,11 +49,14 @@ class HomeController @Inject()(cc: ControllerComponents)
     }
   }
 
+
   def createWorkflow = Action.async { implicit request =>
+
+    val ticketActivity =  Activity("Ticketing")
 
     val startActionFlow = ActionFlow(
       action = StartAction(),
-      activity = "Ticketing"
+      activity = ticketActivity
     )
 
     val startActivityFlow = ActivityFlow(
@@ -65,26 +68,26 @@ class HomeController @Inject()(cc: ControllerComponents)
 
     val editTicketActionFlow = ActionFlow(
       action = FAction("Edit"),
-      activity = "StayStill"
+      activity = CurrActivity()
     )
 
     val closeTicketActionFlow = ActionFlow(
       action = FAction("Close"),
-      activity = "Done"
+      activity = DoneActivity()
     )
 
     val assignTicketActionFlow = ActionFlow(
       action = FAction("Assign"),
-      activity = "StayStill"
+      activity = CurrActivity()
     )
 
     val addCommentActionFlow = ActionFlow(
       action = FAction("Comment"),
-      activity = "StayStill"
+      activity = CurrActivity()
     )
 
     val ticketActivityFlow = ActivityFlow(
-      activity = Activity("Ticketing"),
+      activity = ticketActivity,
       participants = List.empty,
       actionFlows = List(
         editTicketActionFlow,
@@ -99,7 +102,7 @@ class HomeController @Inject()(cc: ControllerComponents)
       ticketActivityFlow
     )
 
-    workflowAggregateUseCase.createWorkflow(CreateWorkflowCmdRequest(UUID.randomUUID(), "Start", workflowList)).map {
+    workflowAggregateUseCase.createWorkflow(CreateWorkflowCmdRequest(UUID.randomUUID(), StartActivity(), workflowList)).map {
       case res: CreateWorkflowCmdSuccess =>  Ok(s"${res.id}")
       case _ => Ok("Failed")
     }

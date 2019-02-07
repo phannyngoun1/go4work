@@ -16,7 +16,7 @@ class TicketAggregateFlowsImpl(aggregateRef: ActorRef) extends TicketAggregateFl
   private implicit val to: Timeout = Timeout(2.seconds)
 
 
-  def takeAction =  {
+  def takeAction = ??? //{
 
     //Find workflow
 
@@ -25,7 +25,7 @@ class TicketAggregateFlowsImpl(aggregateRef: ActorRef) extends TicketAggregateFl
       // --validate participant
       // --trigger task in the activity
       // --update ticket persistent
-  }
+  //}
 
 
 

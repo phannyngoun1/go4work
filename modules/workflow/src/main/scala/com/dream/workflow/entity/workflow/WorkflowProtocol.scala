@@ -3,7 +3,7 @@ package com.dream.workflow.entity.workflow
 import java.util.UUID
 
 import com.dream.common.Protocol.{CmdRequest, CmdResponse}
-import com.dream.workflow.domain.{BaseActivityFlow, Flow, WorkflowError}
+import com.dream.workflow.domain.{BaseActivity, BaseActivityFlow, Flow, WorkflowError}
 
 object WorkflowProtocol {
 
@@ -15,7 +15,7 @@ object WorkflowProtocol {
 
   case class CreateWorkflowCmdRequest(
     id: UUID,
-    initialActivityName: String,
+    initialActivity: BaseActivity,
     flowList: Seq[BaseActivityFlow]
   ) extends WorkFlowCmdRequest
 

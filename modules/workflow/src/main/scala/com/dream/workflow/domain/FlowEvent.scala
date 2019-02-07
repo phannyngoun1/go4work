@@ -12,7 +12,7 @@ object FlowEvent {
 
   case class FlowCreated(
     override val id: UUID,
-    initialActivityName: String,
+    initialActivity: BaseActivity,
     flowList: Seq[BaseActivityFlow],
   ) extends FlowEvent
 

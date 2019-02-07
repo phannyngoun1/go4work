@@ -6,8 +6,7 @@ import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, Materializer, OverflowStrategy}
 import akka.stream.scaladsl.{Keep, Source, SourceQueueWithComplete}
 import com.dream.common.UseCaseSupport
-import com.dream.workflow.domain.Flow
-import com.dream.workflow.domain.{BaseActivityFlow, WorkflowError}
+import com.dream.workflow.domain.{BaseActivity, BaseActivityFlow, Flow, WorkflowError}
 import com.dream.workflow.usecase.port.WorkflowAggregateFlows
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -20,7 +19,7 @@ object WorkflowAggregateUseCase {
 
     case class CreateWorkflowCmdRequest(
       id: UUID,
-      initialActivityName: String,
+      initialActivity: BaseActivity,
       workflowList: Seq[BaseActivityFlow],
     ) extends WorkflowCmdRequest
 

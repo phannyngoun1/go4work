@@ -94,7 +94,7 @@ object ActivityHis {
   implicit val format: Format[ActivityHis] = Json.format
 }
 
-case class ActionFlow(action: BaseAction, activity: String )
+case class ActionFlow(action: BaseAction, activity: BaseActivity )
 
 object ActionFlow {
   implicit val format: Format[ActionFlow] = Json.format
@@ -194,7 +194,7 @@ object WorkFlow {
 
 case class Flow(
   id: UUID,
-  initialActivityName: String,
+  initialActivity: BaseActivity,
   workflowList: Seq[BaseActivityFlow],
   isActive: Boolean = true
 

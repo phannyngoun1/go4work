@@ -2,39 +2,39 @@ package com.dream.workflow.entity.workflow
 
 import java.util.UUID
 
-import akka.Done
 import akka.actor.{ActorLogging, Props}
 import akka.persistence._
 import cats.implicits._
-import WorkflowProtocol._
 import com.dream.common.EntityState
 import com.dream.workflow.domain.FlowEvent.FlowCreated
 import com.dream.workflow.domain._
-import com.dream.workflow.entity.processinstance.ProcessInstanceEntity
+import com.dream.workflow.entity.workflow.WorkflowProtocol._
 
 object WorkflowEntity {
 
   def prop = Props(new WorkflowEntity)
 
-  final val AggregateName  = "work_flow"
+  final val AggregateName = "work_flow"
 
   def name(uuId: UUID): String = uuId.toString
 
   implicit class EitherOps(val self: Either[WorkflowError, Flow]) {
     def toSomeOrThrow: Option[Flow] = self.fold(error => throw new IllegalStateException(error.message), Some(_))
   }
+
 }
 
-class WorkflowEntity extends PersistentActor with ActorLogging  with EntityState[WorkflowError, Flow]{
+class WorkflowEntity extends PersistentActor with ActorLogging with EntityState[WorkflowError, Flow] {
 
   import WorkflowEntity._
+
   var state: Option[Flow] = None
 
   private def applyState(event: FlowCreated): Either[WorkflowError, Flow] =
     Either.right(
       Flow(
         event.id,
-        event.initialActivityName,
+        event.initialActivity,
         event.flowList,
         true
       )
@@ -45,7 +45,7 @@ class WorkflowEntity extends PersistentActor with ActorLogging  with EntityState
 
   override protected def mapState(f: Flow => Either[WorkflowError, Flow]): Either[WorkflowError, Flow] =
     for {
-      state    <- Either.fromOption(state, InvalidWorkflowStateError())
+      state <- Either.fromOption(state, InvalidWorkflowStateError())
       newState <- f(state)
     } yield newState
 
@@ -66,7 +66,7 @@ class WorkflowEntity extends PersistentActor with ActorLogging  with EntityState
   }
 
   override def receiveCommand: Receive = {
-    case cmd: CreateWorkflowCmdRequest => persist(FlowCreated(cmd.id, cmd.initialActivityName, cmd.flowList)) { event =>
+    case cmd: CreateWorkflowCmdRequest => persist(FlowCreated(cmd.id, cmd.initialActivity, cmd.flowList)) { event =>
       state = applyState(event).toSomeOrThrow
       sender() ! CreateWorkflowCmdSuccess(event.id)
     }
