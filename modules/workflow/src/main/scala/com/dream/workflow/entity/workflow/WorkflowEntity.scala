@@ -70,10 +70,11 @@ class WorkflowEntity extends PersistentActor with ActorLogging with EntityState[
       state = applyState(event).toSomeOrThrow
       sender() ! CreateWorkflowCmdSuccess(event.id)
     }
-    case cmd: GetWorkflowCmdRequest if equalsId(cmd.id)(state, _.canEqual(cmd.id)) =>
+    case cmd: GetWorkflowCmdRequest  => {
       foreachState { state =>
         sender() ! GetWorkflowCmdSuccess(state)
       }
+    }
     case SaveSnapshotSuccess(metadata) =>
       log.debug(s"receiveCommand: SaveSnapshotSuccess succeeded: $metadata")
   }

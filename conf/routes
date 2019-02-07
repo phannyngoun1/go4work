@@ -4,10 +4,13 @@
 
 # Home page
 GET     /                                   controllers.HomeController.index
+GET     /item/create                     controllers.HomeController.createItem
 GET     /item/fetch/:id                     controllers.HomeController.getItem(id: String)
 
 GET     /workflow/create                    controllers.HomeController.createWorkflow
 GET     /workflow/fetch/:id                 controllers.HomeController.getWorkflow(id: String)
+
+GET     /instance/create                    controllers.HomeController.createInstance
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

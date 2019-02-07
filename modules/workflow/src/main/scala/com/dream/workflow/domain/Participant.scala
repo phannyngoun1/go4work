@@ -29,10 +29,10 @@ object Company {
 
 case class Participant(
   id: Int,
-  account: Account,
-  team: Team,
-  department: Department,
-  company: Company,
+  account: Account = Account("test"),
+  team: Team = Team("test"),
+  department: Department = Department("test"),
+  company: Company = Company("Test"),
   isActive: Boolean = true,
   isDeleted: Boolean = false
 )

@@ -21,6 +21,7 @@ case class InvalidWorkflowStateError(id: Option[UUID] = None ) extends WorkflowE
 sealed trait BaseActivity {
   def name: String
 
+
   override def equals(obj: Any): Boolean = obj match {
     case a: BaseActivity => name.equals(a.name)
     case _ => false
@@ -66,11 +67,13 @@ case class DefaultFlowParams(value: String) extends Params
 
 sealed trait BaseActivityFlow {
   def activity: BaseActivity
+  def participants: List[Participant]
+  def actionFlows: List[ActionFlow]
 }
 
-object BaseActivityFlow {
-  implicit val jsonFormat: OFormat[BaseActivityFlow] = derived.oformat[BaseActivityFlow]()
-}
+//object BaseActivityFlow {
+//  implicit val jsonFormat: OFormat[BaseActivityFlow] = derived.oformat[BaseActivityFlow]()
+//}
 
 
 case class ActionHis(
@@ -146,17 +149,23 @@ case class DoneActivity() extends BaseActivity {
   * Predefined activity flows
   */
 
-case class NaActivityFlow() extends BaseActivityFlow {
+abstract class AbstractActivityFlow() extends BaseActivityFlow {
+  override def participants: List[Participant] = List.empty
+
+  override def actionFlows: List[ActionFlow] = List.empty
+}
+case class NaActivityFlow() extends AbstractActivityFlow {
+
   override def activity: BaseActivity = NaActivity()
+
 }
 
-
-case class StayStillActivityFlow() extends BaseActivityFlow {
+case class StayStillActivityFlow() extends AbstractActivityFlow {
   override def activity: BaseActivity = CurrActivity()
 }
 
 
-case class DoneActivityFlow() extends BaseActivityFlow {
+case class DoneActivityFlow() extends AbstractActivityFlow {
   override def activity: BaseActivity = DoneActivity()
 }
 
@@ -177,8 +186,7 @@ object Action {
 
 case class DoAction(
   instanceId: Option[UUID] = None,
-  action: BaseAction,
-  onActivity: BaseActivity,
+
   by: Participant,
   params: Option[Params] = None
 )
@@ -188,9 +196,9 @@ object DoAction {
   implicit val format: Format[DoAction] = Json.format
 }
 
-object WorkFlow {
-  implicit val format: Format[Flow] = Json.format
-}
+//object WorkFlow {
+//  implicit val format: Format[Flow] = Json.format
+//}
 
 case class Flow(
   id: UUID,
@@ -198,49 +206,46 @@ case class Flow(
   workflowList: Seq[BaseActivityFlow],
   isActive: Boolean = true
 
-)
+) {
 
 
-//{
-//
-//
-//
-//  /**based one current activity + action + authorized participant => Next Activity flow
-//    */
-//  //TODO: check for authorized participant
-//
-//  def nextActivity(doAction: DoAction, noneParticipantAllowed: Boolean): Either[WorkflowError, BaseActivityFlow ] = {
-//
-//    for {
-//      currAct <- checkCurrentActivity(doAction.onActivity)
-//      nextAct <- nextActivity(doAction.by, doAction.action)(currAct)
-//    } yield nextAct
-//
-//    //Right(NaActivityFlow())
-//  }
-//
-//  private def checkCurrentActivity(activity: BaseActivity) : Either[WorkflowError, BaseActivityFlow] =
-//
-//    workflowList.find(_.activity == activity ) match {
-//      case None => Left(ActivityNotFoundError(s"Current activity: ${activity.name} can't be found"))
-//      case Some(act: BaseActivityFlow )=> Right(act)
-//    }
-//
-//  private def nextActivity(participant: Participant, action: BaseAction)(activityFlow: BaseActivityFlow): Either[WorkflowError, BaseActivityFlow] =
-//
-//    activityFlow match {
-//      case act: ActivityFlow => act.actionFlows.find(_.action == action) match {
-//        case Some(af: ActionFlow) => workflowList.find(_.activity == af.activity) match {
-//          case Some(_: StayStillActivityFlow) => Right(activityFlow)
-//          case Some(value) => Right(value)
-//          case _  => Left(ActivityNotFoundError(s"Next activity cannot found by action: ${action.name}; current activity ${activityFlow.activity.name}"))
-//        }
-//        case _ => Left(ActivityNotFoundError(s"Next activity cannot found by action: ${action.name}; current activity ${activityFlow.activity.name}"))
-//      }
-//      case act: StayStillActivityFlow => Right(act)
-//      case  _ => Left(ActivityNotFoundError(""))
-//    }
-//}
+
+  /**based one current activity + action + authorized participant => Next Activity flow
+    */
+  //TODO: check for authorized participant
+
+  def nextActivity(action: BaseAction, onActivity: BaseActivity, by: Participant, noneParticipantAllowed: Boolean): Either[WorkflowError, BaseActivityFlow ] = {
+
+    for {
+      currAct <- checkCurrentActivity(onActivity)
+      nextAct <- nextActivity(by, action)(currAct)
+    } yield nextAct
+
+    //Right(NaActivityFlow())
+  }
+
+  private def checkCurrentActivity(activity: BaseActivity) : Either[WorkflowError, BaseActivityFlow] =
+
+    workflowList.find(_.activity == activity ) match {
+      case None => Left(ActivityNotFoundError(s"Current activity: ${activity.name} can't be found"))
+      case Some(act: BaseActivityFlow )=> Right(act)
+    }
+
+  private def nextActivity(participant: Participant, action: BaseAction)(currActivityFlow: BaseActivityFlow): Either[WorkflowError, BaseActivityFlow] =
+
+    currActivityFlow match {
+      case act: ActivityFlow => act.actionFlows.find(_.action == action) match {
+        case Some(af: ActionFlow) => workflowList.find(_.activity == af.activity) match {
+          case Some(_: StayStillActivityFlow) => Right(currActivityFlow)
+          case Some(value) => Right(value)
+          case _  => Left(ActivityNotFoundError(s"Next activity cannot found by action: ${action.name}; current activity ${currActivityFlow.activity.name}"))
+        }
+        case _ => Left(ActivityNotFoundError(s"Next activity cannot found by action: ${action.name}; current activity ${currActivityFlow.activity.name}"))
+      }
+      case act: StayStillActivityFlow => Right(act)
+      case  _ => Left(ActivityNotFoundError(""))
+    }
+}
 //
 
 

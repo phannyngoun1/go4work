@@ -41,7 +41,7 @@ object ProcessInstance {
     flowId: UUID,
     folio: String,
     contentType: String,
-    activity: Activity,
+    activity: BaseActivity,
     action: BaseAction,
     by: Participant,
     description: String,

@@ -3,18 +3,18 @@ package controllers
 import java.util.UUID
 
 import akka.actor.ActorSystem
-import com.dream.workflow.adaptor.aggregate.{ItemAggregateFlowsImpl, LocalEntityAggregates, WorkflowAggregateFlowsImpl}
-import com.dream.workflow.domain._
+import com.dream.workflow.adaptor.aggregate.{ItemAggregateFlowsImpl, LocalEntityAggregates, ProcessInstanceAggregateFlowsImpl, WorkflowAggregateFlowsImpl}
+import com.dream.workflow.domain.{Action => FAction, _}
 import com.dream.workflow.model.WorkflowModel.{CreateItemJson, ItemJson}
-import com.dream.workflow.usecase.{ItemAggregateUseCase, WorkflowAggregateUseCase}
 import com.dream.workflow.usecase.ItemAggregateUseCase.Protocol._
-import com.dream.workflow.usecase.WorkflowAggregateUseCase.Protocol.{CreateWorkflowCmdRequest, CreateWorkflowCmdSuccess, GetWorkflowCmdRequest}
+import com.dream.workflow.usecase.ProcessInstanceAggregateUseCase.Protocol.{CreatePInstCmdRequest, CreatePInstCmdSuccess}
+import com.dream.workflow.usecase.WorkflowAggregateUseCase.Protocol._
+import com.dream.workflow.usecase.{ItemAggregateUseCase, ProcessInstanceAggregateUseCase, WorkflowAggregateUseCase}
 import javax.inject.{Inject, Singleton}
-import com.dream.workflow.domain.{Action => FAction}
 import play.api.libs.json._
 import play.api.mvc._
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 //class HomeController @Inject()(userDAO: UserDAO, cc: ControllerComponents)
@@ -30,12 +30,21 @@ class HomeController @Inject()(cc: ControllerComponents)
   val localEntityAggregates = system.actorOf(LocalEntityAggregates.props, LocalEntityAggregates.name)
 
   //  val ticketAggregateUseCase = new TicketAggregateUseCase(new TicketAggregateFlowsImpl(localEntityAggregates))
-  val itemAggregateUseCase = new ItemAggregateUseCase(new ItemAggregateFlowsImpl(localEntityAggregates))
-  val workflowAggregateUseCase = new WorkflowAggregateUseCase(new WorkflowAggregateFlowsImpl(localEntityAggregates))
+  val itemFlow = new ItemAggregateFlowsImpl(localEntityAggregates)
+  val workFlow = new WorkflowAggregateFlowsImpl(localEntityAggregates)
+  val pInstFlow = new ProcessInstanceAggregateFlowsImpl(localEntityAggregates)
+  val itemAggregateUseCase = new ItemAggregateUseCase(itemFlow)
+  val workflowAggregateUseCase = new WorkflowAggregateUseCase(workFlow)
+  val processintance = new ProcessInstanceAggregateUseCase(pInstFlow, workFlow, itemFlow)
 
   def index = Action.async { implicit request =>
 
-    itemAggregateUseCase.createItem(CreateItemCmdRequest(UUID.randomUUID(), "Default Item 1", "Default Item 1", UUID.randomUUID())).map {
+    Future.successful(Ok("hello"))
+  }
+
+
+  def createItem = Action.async { implicit request =>
+    itemAggregateUseCase.createItem(CreateItemCmdRequest(UUID.randomUUID(), "Default ticket item", "Default ticket item", UUID.fromString("d30eb7ad-ad17-49bb-8edb-834bffd2445f"))).map {
       case res: CreateItemCmdSuccess => Ok(Json.toJson(CreateItemJson(res.id)))
       case _ => Ok("Failed")
     }
@@ -52,7 +61,7 @@ class HomeController @Inject()(cc: ControllerComponents)
 
   def createWorkflow = Action.async { implicit request =>
 
-    val ticketActivity =  Activity("Ticketing")
+    val ticketActivity = Activity("Ticketing")
 
     val startActionFlow = ActionFlow(
       action = StartAction(),
@@ -88,7 +97,7 @@ class HomeController @Inject()(cc: ControllerComponents)
 
     val ticketActivityFlow = ActivityFlow(
       activity = ticketActivity,
-      participants = List.empty,
+      participants = List(Participant(1), Participant(2)),
       actionFlows = List(
         editTicketActionFlow,
         closeTicketActionFlow,
@@ -103,16 +112,31 @@ class HomeController @Inject()(cc: ControllerComponents)
     )
 
     workflowAggregateUseCase.createWorkflow(CreateWorkflowCmdRequest(UUID.randomUUID(), StartActivity(), workflowList)).map {
-      case res: CreateWorkflowCmdSuccess =>  Ok(s"${res.id}")
+      case res: CreateWorkflowCmdSuccess => Ok(s"${res.id}")
       case _ => Ok("Failed")
     }
   }
 
   def getWorkflow(id: String) = Action.async { implicit request =>
     workflowAggregateUseCase.getWorkflow(GetWorkflowCmdRequest(UUID.fromString(id))).map {
-      case res: CreateWorkflowCmdSuccess => Ok(s"${res.id}")
+      case GetWorkflowCmdSuccess(flow) => Ok(s"${flow.id  }")
+      case GetWorkflowCmdFailed(id, error) => Ok(s"Failed, id: ${id}, Error: ${error.message} ")
+    }
+  }
+
+
+  def createInstance = Action.async { implicit request =>
+
+    val itemId = UUID.fromString("c95f87a2-887d-4551-86da-4db9890f00fb")
+    processintance.createItem(CreatePInstCmdRequest(
+      itemId,
+      Participant(1)
+
+    )).map {
+      case CreatePInstCmdSuccess(folio) =>  Ok(folio)
       case _ => Ok("Failed")
     }
+
   }
 
 }

@@ -19,7 +19,7 @@ object ProcessInstanceProtocol {
     flowId: UUID,
     folio: String,
     contentType: String,
-    activity: Activity,
+    activity: BaseActivity,
     action: BaseAction,
     by: Participant,
     description: String,
@@ -28,8 +28,10 @@ object ProcessInstanceProtocol {
     todo: String
   ) extends ProcessInstanceCmdRequest
 
-  case class CreatePInstCmdSuccess(id: UUID) extends ProcessInstanceCmdResponse
-  case class CreatePInstCmdFailed(id: UUID, error: InstError) extends ProcessInstanceCmdResponse
+  trait CreatePInstCmdResponse extends ProcessInstanceCmdResponse
+
+  case class CreatePInstCmdSuccess(id: UUID) extends CreatePInstCmdResponse
+  case class CreatePInstCmdFailed(id: UUID, error: InstError) extends CreatePInstCmdResponse
 
   case class GetPInstCmdRequest(
     id: UUID

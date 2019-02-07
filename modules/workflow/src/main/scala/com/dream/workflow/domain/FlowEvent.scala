@@ -17,8 +17,8 @@ object FlowEvent {
   ) extends FlowEvent
 
 
-  object FlowCreated {
-    implicit val format: Format[FlowCreated] = Json.format
-  }
+//  object FlowCreated {
+//    implicit val format: Format[FlowCreated] = Json.format
+//  }
 
 }

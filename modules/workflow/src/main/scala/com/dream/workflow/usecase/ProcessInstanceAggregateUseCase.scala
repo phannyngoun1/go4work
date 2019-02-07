@@ -4,9 +4,15 @@ import java.util.UUID
 
 import akka.actor.ActorSystem
 import akka.stream._
+import akka.stream.scaladsl._
 import com.dream.common.UseCaseSupport
-import com.dream.workflow.domain.{DoAction, Params, Participant, Flow}
-import com.dream.workflow.usecase.port.{ProcessInstanceAggregateFlows, WorkflowAggregateFlows}
+import com.dream.workflow.domain.{Params, Participant, StartAction, StartActivity, Flow => WFlow}
+import com.dream.workflow.entity.processinstance.ProcessInstanceProtocol.{CreatePInstCmdRequest => createInst}
+import com.dream.workflow.usecase.ItemAggregateUseCase.Protocol.{GetItemCmdRequest, GetItemCmdSuccess}
+import com.dream.workflow.usecase.WorkflowAggregateUseCase.Protocol.{GetWorkflowCmdRequest, GetWorkflowCmdSuccess}
+import com.dream.workflow.usecase.port.{ItemAggregateFlows, ProcessInstanceAggregateFlows, WorkflowAggregateFlows}
+
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 
 object ProcessInstanceAggregateUseCase {
@@ -19,81 +25,94 @@ object ProcessInstanceAggregateUseCase {
 
     sealed trait CreateInstanceCmdResponse extends ProcessInstanceCmdResponse
 
-    sealed trait GetFlowCmdResponse extends ProcessInstanceCmdResponse
-
-    case class WorkFlowActionCmdRequest(
-      doAction: DoAction
-    ) extends ProcessInstanceCmdRequest
-
-    case class CreateInstanceCmdRequest(
-      itemID: Long,
+    case class CreatePInstCmdRequest(
+      itemID: UUID,
       by: Participant,
       params: Option[Params] = None
     ) extends ProcessInstanceCmdRequest
 
-    case class CreateInstanceSuccess(
+    sealed trait CreatePInstCmdResponse
+
+    case class CreatePInstCmdSuccess(
       folio: String
-    ) extends CreateInstanceCmdResponse
+    ) extends CreatePInstCmdResponse
 
-    case class CreateInstanceFailed(
+    case class CreatePInstCmdFailed(
       message: String
-    ) extends CreateInstanceCmdResponse
-
-    case class GetFlowCmdRequest(
-      id: UUID
-    ) extends ProcessInstanceCmdRequest
-
-    case class GetFlowSuccess(
-      flow: Flow
-    ) extends GetFlowCmdResponse
-
-    case class GetFlowFailed(
-      message: String
-    ) extends GetFlowCmdResponse
+    ) extends CreatePInstCmdResponse
 
   }
 
 }
 
-class ProcessInstanceAggregateUseCase(processInstanceAggregateFlows: ProcessInstanceAggregateFlows, workflowAggregateFlows: WorkflowAggregateFlows)(implicit system: ActorSystem)
+class ProcessInstanceAggregateUseCase(
+  processInstanceAggregateFlows: ProcessInstanceAggregateFlows,
+  workflowAggregateFlows: WorkflowAggregateFlows,
+  itemAggregateFlows: ItemAggregateFlows
+)(implicit system: ActorSystem)
   extends UseCaseSupport {
 
   import ProcessInstanceAggregateUseCase.Protocol._
+  import UseCaseSupport._
 
   implicit val mat: Materializer = ActorMaterializer()
 
-  //  private val createInstance = Flow.fromGraph(GraphDSL.create() { implicit b =>
-  //    import GraphDSL.Implicits._
-  //
-  //    val in = Inlet[Int]("hello")
-  //    var ot = Outlet[Int]("out")
-  //
-  //    val f = Flow[Int].map(_ + 1)
-  //
-  //
-  //    val bcast = b.add(Broadcast[CreateInstanceCmdRequest](1))
-  //    val merge = b.add(Merge[Int](1))
-  //
-  ////    val convertToGerFlowRequest = Flow[CreateInstanceCmdRequest].map(cmd => GetFlowCmdRequest(cmd.))
-  //
-  //    //bcast.out(0)  ~>  ~> merge
-  //
-  //    ot ~> f ~> in
-  //
-  //    FlowShape(in, ot)
-  //  })
+
+  private val prepareCreateInst = Flow.fromGraph(GraphDSL.create() { implicit b =>
+    import GraphDSL.Implicits._
 
 
-  //  private val openBankAccountQueue
-  //  : SourceQueueWithComplete[(GetFlowCmdRequest, Promise[GetFlowCmdResponse])] = Source
-  //    .queue[(GetFlowCmdRequest, Promise[GetFlowCmdResponse])](10, OverflowStrategy.dropNew)
-  //    .via(workflowAggregateFlows.getWorkflow.zipPromise)
-  //    .toMat(completePromiseSink)(Keep.left)
-  //    .run()
+    val broadcast = b.add(Broadcast[CreatePInstCmdRequest](2))
+    var createInstZip = b.add(Zip[WFlow, CreatePInstCmdRequest])
+
+    val flow1 = Flow[CreatePInstCmdRequest].map(r => GetItemCmdRequest(r.itemID))
+
+    broadcast.out(0) ~> flow1 ~> itemAggregateFlows.getItem.map {
+      case res: GetItemCmdSuccess => GetWorkflowCmdRequest(res.workflowId)
+    } ~> workflowAggregateFlows.getWorkflow.map {
+      case GetWorkflowCmdSuccess(workflow) => workflow
+    } ~> createInstZip.in0
+    broadcast.out(1) ~> createInstZip.in1
+
+    val out = createInstZip.out.map(f => {
+
+      val flow = f._1
+      val req = f._2
+      val startAction = StartAction()
+      val startActivity = StartActivity()
+      val nextFlow = flow.nextActivity(startAction, startActivity, req.by, false) match {
+        case Right(flow) => flow
+      }
+
+      createInst(
+        UUID.randomUUID(),
+        flow.id,
+        "test",
+        "ticket",
+        StartActivity(),
+        StartAction(),
+        req.by,
+        "Test",
+        nextFlow.participants,
+        nextFlow.activity,
+        "todo"
+      )
+    }).via(processInstanceAggregateFlows.createInst)
+
+    FlowShape(broadcast.in, out.outlet)
+  })
 
 
-  def takeAction(request: WorkFlowActionCmdRequest) = {
+  private val createInstanceFlow
+  : SourceQueueWithComplete[(CreatePInstCmdRequest, Promise[CreatePInstCmdResponse])] = Source
+    .queue[(CreatePInstCmdRequest, Promise[CreatePInstCmdResponse])](10, OverflowStrategy.dropNew)
+    .via(prepareCreateInst.zipPromise)
+    .toMat(completePromiseSink)(Keep.left)
+    .run()
 
+  def createItem(request: CreatePInstCmdRequest)(implicit ec: ExecutionContext): Future[CreatePInstCmdResponse] = {
+    offerToQueue(createInstanceFlow)(request, Promise())
   }
+
 
 }
