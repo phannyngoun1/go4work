@@ -63,7 +63,7 @@ class ProcessInstanceAggregateUseCase(
 
 
     val broadcast = b.add(Broadcast[CreatePInstCmdRequest](2))
-    var createInstZip = b.add(Zip[WFlow, CreatePInstCmdRequest])
+    val createInstZip = b.add(Zip[WFlow, CreatePInstCmdRequest])
 
     val flow1 = Flow[CreatePInstCmdRequest].map(r => GetItemCmdRequest(r.itemID))
 
@@ -97,7 +97,7 @@ class ProcessInstanceAggregateUseCase(
         nextFlow.activity,
         "todo"
       )
-    }).via(processInstanceAggregateFlows.createInst)
+    }) ~> processInstanceAggregateFlows.createInst
 
     FlowShape(broadcast.in, out.outlet)
   })

@@ -9,10 +9,14 @@ import com.dream.workflow.domain._
 object ProcessInstanceProtocol {
 
   sealed trait ProcessInstanceCmdRequest extends CmdRequest {
-    val id: UUID
+    def id: UUID
   }
 
+  sealed trait TaskCmdRequest extends CmdRequest
+
   sealed trait ProcessInstanceCmdResponse extends CmdResponse
+
+  sealed trait TaskCmdResponse extends CmdResponse
 
   case class CreatePInstCmdRequest(
     id: UUID,
@@ -42,4 +46,10 @@ object ProcessInstanceProtocol {
   ) extends  ProcessInstanceCmdResponse
 
   case class GetPInstCmdFailed(id: UUID, error: InstError) extends  ProcessInstanceCmdResponse
+
+  case class PerformTaskCmdReq() extends TaskCmdRequest
+
+  abstract class PerformTaskCmdRes() extends TaskCmdResponse
+
+
 }

@@ -4,6 +4,7 @@ import akka.NotUsed
 import akka.actor.ActorRef
 import akka.stream.scaladsl.Flow
 import akka.util.Timeout
+import com.dream.workflow.entity.processinstance.ProcessInstanceProtocol
 import com.dream.workflow.entity.processinstance.ProcessInstanceProtocol.CreatePInstCmdRequest
 import com.dream.workflow.usecase.ProcessInstanceAggregateUseCase.Protocol
 import com.dream.workflow.usecase.port.ProcessInstanceAggregateFlows
@@ -23,4 +24,5 @@ class ProcessInstanceAggregateFlowsImpl(aggregateRef: ActorRef) extends ProcessI
         Future.successful(Protocol.CreatePInstCmdSuccess("test"))
     }
 
+  override def performTask: Flow[ProcessInstanceProtocol.PerformTaskCmdReq, ProcessInstanceProtocol.PerformTaskCmdRes, NotUsed] = ???
 }
