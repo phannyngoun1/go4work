@@ -61,6 +61,7 @@ class ProcessInstanceEntity extends PersistentActor
 
     case cmd: CreatePInstCmdRequest => persist(ProcessInstanceCreated(
       id = cmd.id,
+      activityId = cmd.activityId,
       flowId = cmd.flowId,
       folio = cmd.folio,
       contentType = cmd.contentType,
@@ -96,7 +97,7 @@ class ProcessInstanceEntity extends PersistentActor
         submitter = event.by,
         task = Task(event.todo, participants = event.destinations, activity = event.nextActivity),
         activityHis = Seq(ActivityHis(
-          UUID.randomUUID(),
+          event.activityId,
           event.activity,
           actionHis = Seq(ActionHis(event.by, event.action)),
           description = event.description

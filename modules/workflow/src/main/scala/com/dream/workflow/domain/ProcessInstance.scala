@@ -38,6 +38,7 @@ object ProcessInstance {
   case class ProcessInstanceCreated(
 
     id: UUID,
+    activityId: UUID,
     flowId: UUID,
     folio: String,
     contentType: String,

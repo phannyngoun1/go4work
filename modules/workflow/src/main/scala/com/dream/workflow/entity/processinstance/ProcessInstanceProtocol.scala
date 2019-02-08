@@ -20,6 +20,7 @@ object ProcessInstanceProtocol {
 
   case class CreatePInstCmdRequest(
     id: UUID,
+    activityId: UUID,
     flowId: UUID,
     folio: String,
     contentType: String,
@@ -47,9 +48,15 @@ object ProcessInstanceProtocol {
 
   case class GetPInstCmdFailed(id: UUID, error: InstError) extends  ProcessInstanceCmdResponse
 
-  case class PerformTaskCmdReq() extends TaskCmdRequest
+  case class PerformTaskCmdReq(
+    pInstId: UUID,
+    activityId: UUID,
+  ) extends TaskCmdRequest
 
   abstract class PerformTaskCmdRes() extends TaskCmdResponse
+
+  case class PerformTaskSuccess() extends PerformTaskCmdRes
+  case class PerformTaskFailed() extends PerformTaskCmdRes
 
 
 }

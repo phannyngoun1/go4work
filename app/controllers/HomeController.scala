@@ -5,9 +5,11 @@ import java.util.UUID
 import akka.actor.ActorSystem
 import com.dream.workflow.adaptor.aggregate.{ItemAggregateFlowsImpl, LocalEntityAggregates, ProcessInstanceAggregateFlowsImpl, WorkflowAggregateFlowsImpl}
 import com.dream.workflow.domain.{Action => FAction, _}
+import com.dream.workflow.entity.processinstance.ProcessInstanceProtocol.GetPInstCmdRequest
 import com.dream.workflow.model.WorkflowModel.{CreateItemJson, ItemJson}
 import com.dream.workflow.usecase.ItemAggregateUseCase.Protocol._
-import com.dream.workflow.usecase.ProcessInstanceAggregateUseCase.Protocol.{CreatePInstCmdRequest, CreatePInstCmdSuccess}
+import com.dream.workflow.usecase.ProcessInstanceAggregateUseCase.Protocol.{CreatePInstCmdRequest, CreatePInstCmdSuccess, GetPInstCmdSuccess}
+import com.dream.workflow.usecase.ProcessInstanceAggregateUseCase.Protocol
 import com.dream.workflow.usecase.WorkflowAggregateUseCase.Protocol._
 import com.dream.workflow.usecase.{ItemAggregateUseCase, ProcessInstanceAggregateUseCase, WorkflowAggregateUseCase}
 import javax.inject.{Inject, Singleton}
@@ -128,12 +130,20 @@ class HomeController @Inject()(cc: ControllerComponents)
   def createInstance = Action.async { implicit request =>
 
     val itemId = UUID.fromString("c95f87a2-887d-4551-86da-4db9890f00fb")
-    processintance.createItem(CreatePInstCmdRequest(
+    processintance.createPInst(CreatePInstCmdRequest(
       itemId,
       Participant(1)
 
     )).map {
       case CreatePInstCmdSuccess(folio) =>  Ok(folio)
+      case _ => Ok("Failed")
+    }
+
+  }
+
+  def getInstance(id: String) = Action.async { implicit request =>
+    processintance.getPInst(Protocol.GetPInstCmdRequest(UUID.fromString(id))).map {
+      case cmd: GetPInstCmdSuccess => Ok(s"id: ${cmd.id}, folio: ${cmd.folio}")
       case _ => Ok("Failed")
     }
 
