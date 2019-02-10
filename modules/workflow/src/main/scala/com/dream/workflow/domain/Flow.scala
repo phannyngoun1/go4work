@@ -77,7 +77,7 @@ sealed trait BaseActivityFlow {
 
 
 case class ActionHis(
-  participant: Participant,
+  participantId: UUID,
   action: BaseAction
 )
 
@@ -214,7 +214,7 @@ case class Flow(
     */
   //TODO: check for authorized participant
 
-  def nextActivity(action: BaseAction, onActivity: BaseActivity, by: Participant, noneParticipantAllowed: Boolean): Either[WorkflowError, BaseActivityFlow ] = {
+  def nextActivity(action: BaseAction, onActivity: BaseActivity, by: ParticipantAccess, noneParticipantAllowed: Boolean): Either[WorkflowError, BaseActivityFlow ] = {
 
     for {
       currAct <- checkCurrentActivity(onActivity)
@@ -231,7 +231,7 @@ case class Flow(
       case Some(act: BaseActivityFlow )=> Right(act)
     }
 
-  private def nextActivity(participant: Participant, action: BaseAction)(currActivityFlow: BaseActivityFlow): Either[WorkflowError, BaseActivityFlow] =
+  private def nextActivity(participantAccess: ParticipantAccess, action: BaseAction)(currActivityFlow: BaseActivityFlow): Either[WorkflowError, BaseActivityFlow] =
 
     currActivityFlow match {
       case act: ActivityFlow => act.actionFlows.find(_.action == action) match {

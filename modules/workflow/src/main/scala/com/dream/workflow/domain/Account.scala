@@ -1,5 +1,6 @@
 package com.dream.workflow.domain
 
+import java.time.Instant
 import java.util.UUID
 
 object Account {
@@ -20,12 +21,19 @@ object Account {
     override val message: String = s"Invalid state${id.fold("")(id => s":id = ${id.toString}")}"
   }
 
+  case class ParticipantHis(
+    currParticipantId: UUID,
+    disassociateDate: Instant
+  )
+
 }
 
 case class Account(
   id: UUID,
   name: String,
   currentParticipantId: UUID,
-  isActive: Boolean
+  isActive: Boolean,
+  currParticipantId: Option[UUID] = None,
+  participantHist: List[UUID]
 )
 

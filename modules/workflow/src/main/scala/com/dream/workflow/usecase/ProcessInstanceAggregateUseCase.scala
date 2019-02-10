@@ -7,7 +7,7 @@ import akka.stream._
 import akka.stream.scaladsl._
 import com.dream.common.UseCaseSupport
 import com.dream.workflow.domain.ProcessInstance.InstError
-import com.dream.workflow.domain.{Params, Participant, StartAction, StartActivity, Flow => WFlow}
+import com.dream.workflow.domain.{Params, Participant, ParticipantAccess, StartAction, StartActivity, Flow => WFlow}
 import com.dream.workflow.entity.processinstance.ProcessInstanceProtocol.{PerformTaskCmdReq, CreatePInstCmdRequest => createInst}
 import com.dream.workflow.usecase.ItemAggregateUseCase.Protocol.{GetItemCmdRequest, GetItemCmdResponse, GetItemCmdSuccess}
 import com.dream.workflow.usecase.WorkflowAggregateUseCase.Protocol.{GetWorkflowCmdRequest, GetWorkflowCmdSuccess}
@@ -28,7 +28,7 @@ object ProcessInstanceAggregateUseCase {
 
     case class CreatePInstCmdRequest(
       itemID: UUID,
-      by: Participant,
+      by: UUID,
       params: Option[Params] = None
     ) extends ProcessInstanceCmdRequest
 
@@ -48,8 +48,6 @@ object ProcessInstanceAggregateUseCase {
     sealed trait  GetPInstCmdResponse extends ProcessInstanceCmdRequest
     case class GetPInstCmdSuccess(id: UUID, folio: String) extends GetPInstCmdResponse
     case class GetPInstCmdFailed(id: UUID, instError: InstError) extends GetPInstCmdResponse
-
-
 
   }
 
@@ -79,7 +77,7 @@ class ProcessInstanceAggregateUseCase(
         val req = f._2
         val startAction = StartAction()
         val startActivity = StartActivity()
-        val nextFlow = flow.nextActivity(startAction, startActivity, req.by, false) match {
+        val nextFlow = flow.nextActivity(startAction, startActivity, ParticipantAccess(req.by), false) match {
           case Right(flow) => flow
         }
         createInst(
