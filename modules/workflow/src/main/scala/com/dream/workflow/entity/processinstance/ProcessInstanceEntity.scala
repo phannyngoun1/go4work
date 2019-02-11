@@ -6,20 +6,23 @@ import akka.actor.{ActorLogging, Props}
 import akka.persistence._
 import cats.implicits._
 import com.dream.common.EntityState
+import com.dream.workflow.domain.Participant.ParticipantCreated
 import com.dream.workflow.domain.ProcessInstance.{InstError, InvalidInstStateError, ProcessInstanceCreated, Task}
 import com.dream.workflow.domain._
 import com.dream.workflow.entity.processinstance.ProcessInstanceProtocol._
+
 object ProcessInstanceEntity {
 
-  def prop = Props(new ProcessInstanceEntity)
-
   final val AggregateName = "p-inst"
+
+  def prop = Props(new ProcessInstanceEntity)
 
   def name(uuId: UUID): String = uuId.toString
 
   implicit class EitherOps(val self: Either[InstError, ProcessInstance]) {
     def toSomeOrThrow: Option[ProcessInstance] = self.fold(error => throw new IllegalStateException(error.message), Some(_))
   }
+
 }
 
 class ProcessInstanceEntity extends PersistentActor
@@ -29,16 +32,6 @@ class ProcessInstanceEntity extends PersistentActor
   import ProcessInstanceEntity._
 
   private var state: Option[ProcessInstance] = None
-
-  override protected def foreachState(f: ProcessInstance => Unit): Unit =
-    Either.fromOption(state, InvalidInstStateError()).filterOrElse(_.isActive, InvalidInstStateError()).foreach(f)
-
-  override protected def mapState(f: ProcessInstance => Either[InstError, ProcessInstance]): Either[InstError, ProcessInstance] =
-    for {
-      state <- Either.fromOption(state, InvalidInstStateError())
-      newState <- f(state)
-    } yield newState
-
 
   override def receiveRecover: Receive = {
     case SnapshotOffer(_, _state: ProcessInstance) =>
@@ -56,6 +49,8 @@ class ProcessInstanceEntity extends PersistentActor
       println(s"Recovery completed: $persistenceId")
     case _ => log.debug("Other")
   }
+
+  override def persistenceId: String = s"$AggregateName-${self.path.name}"
 
   override def receiveCommand: Receive = {
 
@@ -85,7 +80,8 @@ class ProcessInstanceEntity extends PersistentActor
       log.debug(s"receiveCommand: SaveSnapshotSuccess succeeded: $metadata")
   }
 
-  override def persistenceId: String = s"$AggregateName-${self.path.name}"
+  override protected def foreachState(f: ProcessInstance => Unit): Unit =
+    Either.fromOption(state, InvalidInstStateError()).filterOrElse(_.isActive, InvalidInstStateError()).foreach(f)
 
   private def applyState(event: ProcessInstanceCreated): Either[InstError, ProcessInstance] =
     Either.right(
@@ -104,4 +100,10 @@ class ProcessInstanceEntity extends PersistentActor
         ))
       )
     )
+
+  override protected def mapState(f: ProcessInstance => Either[InstError, ProcessInstance]): Either[InstError, ProcessInstance] =
+    for {
+      state <- Either.fromOption(state, InvalidInstStateError())
+      newState <- f(state)
+    } yield newState
 }

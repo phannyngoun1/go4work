@@ -10,14 +10,12 @@ object Item {
     val message: String
   }
 
-
   case class DefaultItemError(message: String) extends ItemError
 
   case class InvalidItemStateError(id: Option[UUID] = None) extends ItemError {
 
     override val message: String = s"Invalid state${id.fold("")(id => s":id = ${id.toString}")}"
   }
-
 }
 
 case class Item(

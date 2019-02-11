@@ -6,9 +6,9 @@ import akka.actor.{Actor, ActorLogging, Props}
 import akka.persistence._
 import cats.implicits._
 import com.dream.common.EntityState
-import com.dream.workflow.domain.Item.{InvalidItemStateError, ItemError}
-import com.dream.workflow.domain.{Item, ItemCreated}
-import com.dream.workflow.entity.item.ItemProtocol.{GetItemCmdRequest, GetItemCmdSuccess, NewItemCmdRequest, NewItemCmdSuccess}
+import com.dream.workflow.domain.Item._
+import com.dream.workflow.domain._
+import com.dream.workflow.entity.item.ItemProtocol._
 
 object ItemEntity {
 

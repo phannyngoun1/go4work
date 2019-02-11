@@ -18,6 +18,10 @@ object ProcessInstanceProtocol {
 
   sealed trait TaskCmdResponse extends CmdResponse
 
+  trait CreatePInstCmdResponse extends ProcessInstanceCmdResponse
+
+  abstract class PerformTaskCmdRes() extends TaskCmdResponse
+
   case class CreatePInstCmdRequest(
     id: UUID,
     activityId: UUID,
@@ -26,16 +30,15 @@ object ProcessInstanceProtocol {
     contentType: String,
     activity: BaseActivity,
     action: BaseAction,
-    by: Participant,
+    by: UUID,
     description: String,
     destinations: List[Participant],
     nextActivity: BaseActivity,
     todo: String
   ) extends ProcessInstanceCmdRequest
 
-  trait CreatePInstCmdResponse extends ProcessInstanceCmdResponse
-
   case class CreatePInstCmdSuccess(id: UUID) extends CreatePInstCmdResponse
+
   case class CreatePInstCmdFailed(id: UUID, error: InstError) extends CreatePInstCmdResponse
 
   case class GetPInstCmdRequest(
@@ -44,18 +47,17 @@ object ProcessInstanceProtocol {
 
   case class GetPInstCmdSuccess(
     processInstance: ProcessInstance
-  ) extends  ProcessInstanceCmdResponse
+  ) extends ProcessInstanceCmdResponse
 
-  case class GetPInstCmdFailed(id: UUID, error: InstError) extends  ProcessInstanceCmdResponse
+  case class GetPInstCmdFailed(id: UUID, error: InstError) extends ProcessInstanceCmdResponse
 
   case class PerformTaskCmdReq(
     pInstId: UUID,
     activityId: UUID,
   ) extends TaskCmdRequest
 
-  abstract class PerformTaskCmdRes() extends TaskCmdResponse
-
   case class PerformTaskSuccess() extends PerformTaskCmdRes
+
   case class PerformTaskFailed() extends PerformTaskCmdRes
 
 

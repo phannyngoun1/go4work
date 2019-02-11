@@ -44,7 +44,7 @@ object ProcessInstance {
     contentType: String,
     activity: BaseActivity,
     action: BaseAction,
-    by: Participant,
+    by: UUID,
     description: String,
     destinations: List[Participant],
     nextActivity: BaseActivity,
@@ -58,7 +58,7 @@ case class ProcessInstance(
   flowId: UUID,
   folio: String,
   contentType: String,
-  submitter: Participant,
+  submitter: UUID,
   task: Task,
   activityHis: Seq[ActivityHis] = Seq.empty,
   isActive: Boolean = true

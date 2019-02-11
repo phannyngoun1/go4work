@@ -7,7 +7,7 @@ object LocalEntityAggregates {
 
   def props = Props(new LocalEntityAggregates)
 
-  def name = "local-process-instances"
+def name = "local-process-instances"
 }
 
 class LocalEntityAggregates  extends Actor  with AggregatesLookup {

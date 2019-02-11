@@ -46,7 +46,7 @@ class HomeController @Inject()(cc: ControllerComponents)
 
 
   def createItem = Action.async { implicit request =>
-    itemAggregateUseCase.createItem(CreateItemCmdRequest(UUID.randomUUID(), "Default ticket item", "Default ticket item", UUID.fromString("d30eb7ad-ad17-49bb-8edb-834bffd2445f"))).map {
+    itemAggregateUseCase.createItem(CreateItemCmdRequest(UUID.randomUUID(), "Default ticket item", "Default ticket item", UUID.fromString("8806ef9d-8937-4725-9208-fea1646f1c45"))).map {
       case res: CreateItemCmdSuccess => Ok(Json.toJson(CreateItemJson(res.id)))
       case _ => Ok("Failed")
     }
@@ -129,10 +129,10 @@ class HomeController @Inject()(cc: ControllerComponents)
 
   def createInstance = Action.async { implicit request =>
 
-    val itemId = UUID.fromString("c95f87a2-887d-4551-86da-4db9890f00fb")
+    val itemId = UUID.fromString("293c05d1-255e-4b4b-9f33-27951fcfaf19")
     processintance.createPInst(CreatePInstCmdRequest(
       itemId,
-      Participant(1)
+      UUID.fromString("cbc29892-ecf8-4754-bb7d-4857b02e06ba")
 
     )).map {
       case CreatePInstCmdSuccess(folio) =>  Ok(folio)
