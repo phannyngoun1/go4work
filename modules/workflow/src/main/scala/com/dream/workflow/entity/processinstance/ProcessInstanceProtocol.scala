@@ -32,7 +32,7 @@ object ProcessInstanceProtocol {
     action: BaseAction,
     by: UUID,
     description: String,
-    destinations: List[Participant],
+    destinations: List[UUID],
     nextActivity: BaseActivity,
     todo: String
   ) extends ProcessInstanceCmdRequest

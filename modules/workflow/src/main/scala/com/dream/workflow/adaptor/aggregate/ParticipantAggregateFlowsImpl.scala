@@ -36,7 +36,7 @@ class ParticipantAggregateFlowsImpl(aggregateRef: ActorRef) extends ParticipantA
       .map(req => GetParticipantCmdReq(id = req.id))
       .mapAsync(1)(aggregateRef ? _)
       .map {
-        case res: GetParticipantCmdSuccess => Protocol.GetParticipantCmdSuccess(res.id)
+        case GetParticipantCmdSuccess(participant) => Protocol.GetParticipantCmdSuccess(participant.id)
         case GetParticipantCmdFaile(id, error) => Protocol.GetParticipantCmdFailed(id, error)
       }
 

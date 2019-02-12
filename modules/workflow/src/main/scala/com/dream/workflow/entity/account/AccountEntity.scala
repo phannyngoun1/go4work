@@ -7,7 +7,8 @@ import akka.persistence._
 import cats.implicits._
 import com.dream.common.EntityState
 import com.dream.workflow.domain.Account._
-import com.dream.workflow.domain.{Account}
+import com.dream.workflow.domain.Account
+import com.dream.workflow.entity.account.AccountProtocol._
 
 object AccountEntity {
 
@@ -28,13 +29,15 @@ class AccountEntity extends PersistentActor with ActorLogging with EntityState[A
 
   var state: Option[Account] = None
 
+  val numOfEventsToSnapshot = 3
+
   private def applyState(event: AccountCreated): Either[AccountError, Account] =
     Either.right(
       Account(
         event.id,
         event.name,
-        event.currentParticipantId,
-        true
+        event.fullName,
+        event.currentParticipantId
       )
     )
 
@@ -42,7 +45,6 @@ class AccountEntity extends PersistentActor with ActorLogging with EntityState[A
     case SnapshotOffer(_, _state: Account) =>
       println(s"SnapshotOffer ${_state}")
       state = Some(_state)
-
     case SaveSnapshotSuccess(metadata) =>
       log.debug(s"receiveRecover: SaveSnapshotSuccess succeeded: $metadata")
     case SaveSnapshotFailure(metadata, reason) ⇒
@@ -50,6 +52,9 @@ class AccountEntity extends PersistentActor with ActorLogging with EntityState[A
     case event: AccountCreated=>
       println(s"replay event: $event")
       state = applyState(event).toSomeOrThrow
+    case event: ParticipantAssigned =>
+      println(s"replay event: $event")
+      state = mapState(_.assignParticipant(event.participantId)).toSomeOrThrow
     case RecoveryCompleted =>
       println(s"Recovery completed: $persistenceId")
     case _ => log.debug("Other")
@@ -57,8 +62,33 @@ class AccountEntity extends PersistentActor with ActorLogging with EntityState[A
   }
 
   override def receiveCommand: Receive = {
+
+    case cmd: CreateAccountCmdRequest => persist(AccountCreated(cmd.id, cmd.name, cmd.fullName, cmd.participantId)) { event =>
+      sender() ! CreateAccountCmdSuccess(cmd.id)
+      applyState(event)
+    }
+
+    case GetAccountCmdRequest(id) if equalsId(id)(state, _.id.equals(id)) =>
+      foreachState{ state =>
+
+        println(s"retrive: ${state}")
+
+        sender() ! GetAccountCmdSuccess(state)
+      }
+
+    case AssignParticipantCmdRequest(id, participantId)  if equalsId(id)(state, _.id.equals(id)) =>
+      mapState(_.assignParticipant(participantId)) match {
+        case Left(error) => sender() ! AssignParticipantCmdFailed(id, error)
+        case Right(newState) => persist(ParticipantAssigned(id, participantId)) { event =>
+          state = Some(newState)
+          sender() ! AssignParticipantCmdSuccess(id)
+          //tryToSaveSnapshot()
+        }
+    }
+
     case SaveSnapshotSuccess(metadata) =>
       log.debug(s"receiveCommand: SaveSnapshotSuccess succeeded: $metadata")
+    case cmd: AccountCmdRequest =>  println(s"no handler for : ${cmd} ")
   }
 
   override def persistenceId: String =  s"$AggregateName-${self.path.name}"
@@ -71,4 +101,11 @@ class AccountEntity extends PersistentActor with ActorLogging with EntityState[A
       state    <- Either.fromOption(state, InvalidAccountStateError())
       newState <- f(state)
     } yield newState
+
+
+
+  private def tryToSaveSnapshot(): Unit =
+    if (lastSequenceNr % numOfEventsToSnapshot == 0) {
+      foreachState(saveSnapshot)
+    }
 }

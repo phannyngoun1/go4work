@@ -3,6 +3,8 @@ package com.dream.workflow.domain
 import java.time.Instant
 import java.util.UUID
 
+import com.dream.workflow.domain.Account.{AccountError, AccountEvent, ParticipantAssigned}
+
 object Account {
 
   sealed trait AccountEvent
@@ -14,7 +16,13 @@ object Account {
   case class AccountCreated(
     id: UUID,
     name: String,
-    currentParticipantId: UUID
+    fullName: String,
+    currentParticipantId: Option[UUID] = None
+  ) extends AccountEvent
+
+  case class ParticipantAssigned(
+    id: UUID,
+    participantId: UUID
   ) extends AccountEvent
 
   case class InvalidAccountStateError(id: Option[UUID] = None) extends AccountError {
@@ -31,9 +39,13 @@ object Account {
 case class Account(
   id: UUID,
   name: String,
-  currentParticipantId: UUID,
-  isActive: Boolean,
+  fullName: String,
   currParticipantId: Option[UUID] = None,
-  participantHist: List[UUID]
-)
+  participantHist: List[UUID] = List.empty,
+  isActive: Boolean = true
+) {
+  def assignParticipant(participantId: UUID): Either[AccountError, Account] =
+    Right(copy(currParticipantId = Some(participantId)))
+
+}
 

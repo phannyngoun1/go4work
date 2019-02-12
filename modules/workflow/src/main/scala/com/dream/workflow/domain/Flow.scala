@@ -67,7 +67,7 @@ case class DefaultFlowParams(value: String) extends Params
 
 sealed trait BaseActivityFlow {
   def activity: BaseActivity
-  def participants: List[Participant]
+  def participants: List[UUID]
   def actionFlows: List[ActionFlow]
 }
 
@@ -103,10 +103,12 @@ object ActionFlow {
   implicit val format: Format[ActionFlow] = Json.format
 }
 
-case class ActivityFlow(activity: BaseActivity, participants: List[Participant], actionFlows: List[ActionFlow]) extends BaseActivityFlow
-object ActivityFlow {
-  implicit val format: Format[ActivityFlow] = Json.format
-}
+case class ActivityFlow(activity: BaseActivity, participants: List[UUID], actionFlows: List[ActionFlow]) extends BaseActivityFlow
+
+//
+//object ActivityFlow {
+//  implicit val format: Format[ActivityFlow] = Json.format
+//}
 
 
 /**
@@ -150,7 +152,7 @@ case class DoneActivity() extends BaseActivity {
   */
 
 abstract class AbstractActivityFlow() extends BaseActivityFlow {
-  override def participants: List[Participant] = List.empty
+  override def participants: List[UUID] = List.empty
 
   override def actionFlows: List[ActionFlow] = List.empty
 }
@@ -192,9 +194,9 @@ case class DoAction(
 )
 
 
-object DoAction {
-  implicit val format: Format[DoAction] = Json.format
-}
+//object DoAction {
+//  implicit val format: Format[DoAction] = Json.format
+//}
 
 //object WorkFlow {
 //  implicit val format: Format[Flow] = Json.format

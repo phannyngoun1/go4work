@@ -21,7 +21,7 @@ object ProcessInstance {
 
   case class Task(
     description: String,
-    participants: List[Participant],
+    participants: List[UUID],
     //Priority
     activity: BaseActivity
   )
@@ -46,7 +46,7 @@ object ProcessInstance {
     action: BaseAction,
     by: UUID,
     description: String,
-    destinations: List[Participant],
+    destinations: List[UUID],
     nextActivity: BaseActivity,
     todo: String
   ) extends ProcessInstanceEvent

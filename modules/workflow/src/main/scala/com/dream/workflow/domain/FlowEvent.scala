@@ -2,7 +2,6 @@ package com.dream.workflow.domain
 
 import java.util.UUID
 
-import play.api.libs.json.{Format, Json}
 
 object FlowEvent {
 
