@@ -128,7 +128,7 @@ class ProcessInstanceAggregateUseCase(
 
     val out = createInstZip.out ~> convertToCreatePInstCmdReq ~> createPrepareB ~> processInstanceAggregateFlows.createInst
     createPrepareB ~> convertToTaskCmdRequestFlow ~> processInstanceAggregateFlows.performTask ~> Sink.ignore
-    createPrepareB ~> assignTaskCmdFlow ~> Sink.ignore
+    createPrepareB ~> assignTaskCmdFlow ~> Sink.foreach(println)
 
     FlowShape(broadcast.in, out.outlet)
   })
