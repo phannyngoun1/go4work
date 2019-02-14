@@ -8,15 +8,23 @@ import akka.stream.scaladsl._
 import com.dream.common.UseCaseSupport
 import com.dream.workflow.domain.ProcessInstance.InstError
 import com.dream.workflow.domain.{Params, ParticipantAccess, StartAction, StartActivity, Flow => WFlow}
-import com.dream.workflow.entity.processinstance.ProcessInstanceProtocol.{PerformTaskCmdReq, CreatePInstCmdRequest => createInst}
+import com.dream.workflow.entity.processinstance.ProcessInstanceProtocol.{PerformTaskCmdReq, CreatePInstCmdRequest => CreateInst}
 import com.dream.workflow.usecase.ItemAggregateUseCase.Protocol.{GetItemCmdRequest, GetItemCmdSuccess}
+import com.dream.workflow.usecase.ParticipantAggregateUseCase.Protocol.AssignTaskCmdReq
+import com.dream.workflow.usecase.ProcessInstanceAggregateUseCase.TaskToDest
 import com.dream.workflow.usecase.WorkflowAggregateUseCase.Protocol.{GetWorkflowCmdRequest, GetWorkflowCmdSuccess}
-import com.dream.workflow.usecase.port.{ItemAggregateFlows, ProcessInstanceAggregateFlows, WorkflowAggregateFlows}
+import com.dream.workflow.usecase.port.{ItemAggregateFlows, ParticipantAggregateFlows, ProcessInstanceAggregateFlows, WorkflowAggregateFlows}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
 
 object ProcessInstanceAggregateUseCase {
+
+  case class TaskToDest(
+    taskId: UUID,
+    pInst: UUID,
+    participantId: UUID
+  )
 
   object Protocol {
 
@@ -56,7 +64,8 @@ object ProcessInstanceAggregateUseCase {
 class ProcessInstanceAggregateUseCase(
   processInstanceAggregateFlows: ProcessInstanceAggregateFlows,
   workflowAggregateFlows: WorkflowAggregateFlows,
-  itemAggregateFlows: ItemAggregateFlows
+  itemAggregateFlows: ItemAggregateFlows,
+  participantAggregateFlows: ParticipantAggregateFlows
 )(implicit system: ActorSystem)
   extends UseCaseSupport {
 
@@ -64,6 +73,7 @@ class ProcessInstanceAggregateUseCase(
   import UseCaseSupport._
 
   implicit val mat: Materializer = ActorMaterializer()
+
 
   private val prepareCreateInst = Flow.fromGraph(GraphDSL.create() { implicit b =>
     import GraphDSL.Implicits._
@@ -80,7 +90,7 @@ class ProcessInstanceAggregateUseCase(
         val nextFlow = flow.nextActivity(startAction, startActivity, ParticipantAccess(req.by), false) match {
           case Right(flow) => flow
         }
-        createInst(
+        CreateInst(
           UUID.randomUUID(),
           UUID.randomUUID(),
           flow.id,
@@ -92,6 +102,7 @@ class ProcessInstanceAggregateUseCase(
           "Test",
           nextFlow.participants,
           nextFlow.activity,
+          nextFlow.actionFlows.map(_.action),
           "todo"
         )
       }
@@ -105,14 +116,23 @@ class ProcessInstanceAggregateUseCase(
 
     broadcast.out(1) ~> createInstZip.in1
 
-    val createPrepareB = b.add(Broadcast[createInst](2))
-    val convertToTaskCmdRequestFlow = Flow[createInst].map(p => PerformTaskCmdReq(p.id, p.activityId))
+    val createPrepareB = b.add(Broadcast[CreateInst](3))
+    val convertToTaskCmdRequestFlow = Flow[CreateInst].map(p => PerformTaskCmdReq(p.id, p.activityId))
+
+    //TODO: adding real tasks
+
+    val assignTaskCmdFlow = Flow[CreateInst].map(p => p.destinations.map(dest => TaskToDest(UUID.randomUUID(), p.id, dest) ))
+
+
+
 
     val out = createInstZip.out ~> convertToCreatePInstCmdReq ~> createPrepareB ~> processInstanceAggregateFlows.createInst
     createPrepareB ~> convertToTaskCmdRequestFlow ~> processInstanceAggregateFlows.performTask ~> Sink.ignore
+    createPrepareB ~> assignTaskCmdFlow ~> Sink.ignore
 
     FlowShape(broadcast.in, out.outlet)
   })
+
 
 
   private val createInstanceFlow

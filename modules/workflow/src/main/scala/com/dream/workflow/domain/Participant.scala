@@ -3,7 +3,7 @@ package com.dream.workflow.domain
 import java.time.Instant
 import java.util.UUID
 
-import com.dream.workflow.domain.Participant.{ParticipantError, ParticipantEvent}
+import com.dream.workflow.domain.Participant.{DefaultParticipantError, ParticipantError, ParticipantEvent, TaskAssigned}
 import play.api.libs.json.{Format, Json}
 
 case class Team(name: String)
@@ -25,13 +25,8 @@ object Company {
 }
 
 case class ParticipantTask(
-  pInstId: UUID,
-  description: String,
-  activity: BaseActivity,
-  actions: Seq[BaseAction],
-  dateCreated: Instant = Instant.now(),
-  dateCompleted: Option[Instant] = None,
-  byActivityId: Option[UUID] = None
+  taskId: UUID,
+  pInstId: UUID
 )
 
 case class ParticipantAccess(participantId: UUID)
@@ -45,10 +40,10 @@ object Participant {
   case class DefaultParticipantError(message: String) extends ParticipantError
 
   case class InvalidParticipantStateError(id: Option[UUID] = None) extends ParticipantError {
-
     override val message: String = s"Invalid state${id.fold("")(id => s":id = ${id.toString}")}"
-
   }
+
+
 
   sealed trait ParticipantEvent
 
@@ -61,10 +56,10 @@ object Participant {
   ) extends ParticipantEvent
 
   case class TaskAssigned(
+    id: UUID,
+    taskId: UUID,
     pInstId: UUID,
-    description: String,
-    activity: BaseActivity,
-    actions: Seq[BaseAction],
+
   ) extends ParticipantEvent
 
   case class TaskPerformed(
@@ -88,18 +83,19 @@ case class Participant(
   taskHist: List[ParticipantTask] = List.empty
 ) {
 
-  def withEvent(event: ParticipantEvent): Either[ParticipantError, Participant] =
-    event match {
-      case Participant.TaskAssigned(pInstId, description, activity, actions) =>
-        Right(copy(
-          tasks =  ParticipantTask(
-            pInstId = pInstId,
-            description = description,
-            activity = activity,
-            actions = actions
-          )  :: tasks
-        ))
-    }
+  def assignTask(taskId: UUID, pInstId: UUID) : Either[ParticipantError, Participant] =
+
+    if(!tasks.exists(_.taskId.equals(taskId)))
+      Right(copy(
+        tasks = ParticipantTask(
+          taskId = taskId,
+          pInstId = pInstId
+        ) :: tasks
+      ))
+    else
+      Left(DefaultParticipantError("Task is already assigned"))
+
+
 }
 
 

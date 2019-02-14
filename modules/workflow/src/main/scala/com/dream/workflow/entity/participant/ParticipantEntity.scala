@@ -8,7 +8,7 @@ import cats.implicits._
 import com.dream.common.EntityState
 import com.dream.workflow.domain.Participant
 import com.dream.workflow.domain.Participant._
-import com.dream.workflow.entity.participant.ParticipantProtocol.{CreateParticipantCmdReq, CreateParticipantCmdSuccess, GetParticipantCmdReq, GetParticipantCmdSuccess}
+import com.dream.workflow.entity.participant.ParticipantProtocol._
 
 object ParticipantEntity {
 
@@ -26,6 +26,8 @@ object ParticipantEntity {
 class ParticipantEntity extends PersistentActor with ActorLogging with EntityState[ParticipantError,Participant]{
 
   import ParticipantEntity._
+
+  val numOfEventsToSnapshot = 3
 
   var state: Option[Participant] = None
 
@@ -61,6 +63,8 @@ class ParticipantEntity extends PersistentActor with ActorLogging with EntitySta
     case event: ParticipantCreated=>
       println(s"replay event: $event")
       state = applyState(event).toSomeOrThrow
+    case event: TaskAssigned =>
+      state = mapState(_.assignTask(event.taskId, event.pInstId)).toSomeOrThrow
     case RecoveryCompleted =>
       println(s"Recovery completed: $persistenceId")
     case _ => log.debug("Other")
@@ -78,7 +82,7 @@ class ParticipantEntity extends PersistentActor with ActorLogging with EntitySta
         propertyId = cmd.propertyId
       )) { event =>
 
-        applyState(event).toSomeOrThrow
+        state = applyState(event).toSomeOrThrow
         sender() ! CreateParticipantCmdSuccess(event.id)
       }
 
@@ -87,9 +91,24 @@ class ParticipantEntity extends PersistentActor with ActorLogging with EntitySta
         sender() ! GetParticipantCmdSuccess(state)
       }
 
+    case cmd: AssignTaskCmdReq if equalsId(cmd.id)(state, _.id.equals(cmd.id)) =>
+      mapState(_.assignTask(cmd.taskId, cmd.pInstId)) match {
+        case Left(error) => AssignTaskCmdFailed(cmd.id, error)
+        case Right(newState) => persist(TaskAssigned(cmd.id,cmd.taskId , cmd.pInstId)) { event =>
+          state = Some(newState)
+          sender() ! AssignTaskCmdSuccess(event.id)
+          tryToSaveSnapshot()
+        }
+      }
+
     case SaveSnapshotSuccess(metadata) =>
       log.debug(s"receiveCommand: SaveSnapshotSuccess succeeded: $metadata")
   }
+
+  private def tryToSaveSnapshot(): Unit =
+    if (lastSequenceNr % numOfEventsToSnapshot == 0) {
+      foreachState(saveSnapshot)
+    }
 
   override def persistenceId: String = s"$AggregateName-${self.path.name}"
 }

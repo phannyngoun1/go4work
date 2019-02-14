@@ -13,13 +13,14 @@ GET     /workflow/fetch/:id                 controllers.HomeController.getWorkfl
 GET     /instance/create                    controllers.HomeController.createInstance
 GET     /instance/fetch/:id                 controllers.HomeController.getInstance(id: String)
 
-GET     /account/create                    controllers.HomeController.createAccount
-GET     /account/fetch/:id                 controllers.HomeController.getAccount(id: String)
+GET     /account/create                     controllers.HomeController.createAccount
+GET     /account/assignParticipant          controllers.HomeController.assignParticipant
+GET     /account/fetch/:id                  controllers.HomeController.getAccount(id: String)
 
-GET     /participant/create                controllers.HomeController.createParticipant
-GET     /participant/fetch/:id             controllers.HomeController.getParticipant(id: String)
+GET     /participant/create                 controllers.HomeController.createParticipant
+GET     /participant/fetch/:id              controllers.HomeController.getParticipant(id: String)
+GET     /participant/assignTask/:id         controllers.HomeController.assignTask(id: String)
 
-GET     /participant/assignParticipant     controllers.HomeController.assignParticipant
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

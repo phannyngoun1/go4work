@@ -65,7 +65,7 @@ class AccountEntity extends PersistentActor with ActorLogging with EntityState[A
 
     case cmd: CreateAccountCmdRequest => persist(AccountCreated(cmd.id, cmd.name, cmd.fullName, cmd.participantId)) { event =>
       sender() ! CreateAccountCmdSuccess(cmd.id)
-      applyState(event)
+      state = applyState(event).toSomeOrThrow
     }
 
     case GetAccountCmdRequest(id) if equalsId(id)(state, _.id.equals(id)) =>
@@ -82,7 +82,7 @@ class AccountEntity extends PersistentActor with ActorLogging with EntityState[A
         case Right(newState) => persist(ParticipantAssigned(id, participantId)) { event =>
           state = Some(newState)
           sender() ! AssignParticipantCmdSuccess(id)
-          //tryToSaveSnapshot()
+          tryToSaveSnapshot()
         }
     }
 

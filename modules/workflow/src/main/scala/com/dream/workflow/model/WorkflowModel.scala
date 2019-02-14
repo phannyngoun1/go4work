@@ -28,4 +28,19 @@ object WorkflowModel {
   object ItemJson {
     implicit val format: Format[ItemJson] = Json.format
   }
+
+  case class ParticipantJson(
+    id: UUID,
+    accountId: UUID,
+    teamID: UUID,
+    departmentId: UUID,
+    propertyId: UUID,
+    isActive: Boolean = true,
+    isDeleted: Boolean = false,
+    tasks: List[String]
+  )
+
+  object ParticipantJson {
+    implicit val format: Format[ParticipantJson] = Json.format
+  }
 }

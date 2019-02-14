@@ -34,6 +34,7 @@ object ProcessInstanceProtocol {
     description: String,
     destinations: List[UUID],
     nextActivity: BaseActivity,
+    nextActions: List[BaseAction],
     todo: String
   ) extends ProcessInstanceCmdRequest
 

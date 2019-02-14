@@ -4,10 +4,10 @@ import java.util.UUID
 
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Keep, Source, SourceQueueWithComplete}
-import akka.stream.{ActorMaterializer, Materializer, OverflowStrategy}
+import akka.stream._
 import com.dream.common.UseCaseSupport
 import com.dream.workflow.domain.Participant.ParticipantError
-import com.dream.workflow.domain.{BaseAction, BaseActivity}
+import com.dream.workflow.domain.{BaseAction, BaseActivity, Participant}
 import com.dream.workflow.usecase.port.ParticipantAggregateFlows
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -49,7 +49,7 @@ object ParticipantAggregateUseCase {
     sealed trait GetParticipantCmdRes extends ParticipantCmdResponse
 
     case class GetParticipantCmdSuccess(
-      id: UUID
+      participant: Participant
     ) extends GetParticipantCmdRes
 
     case class GetParticipantCmdFailed(id: UUID, error: ParticipantError) extends GetParticipantCmdRes with ParticipantErrorCmdRequest
@@ -57,15 +57,13 @@ object ParticipantAggregateUseCase {
 
     case class AssignTaskCmdReq(
       id: UUID,
+      taskId: UUID,
       pInstId: UUID,
-      description: String,
-      activity: BaseActivity,
-      actions: Seq[BaseAction],
     ) extends ParticipantCmdRequest
 
     trait AssignTaskCmdRes extends ParticipantCmdResponse
 
-    case class AssignTaskCmdSuccess() extends AssignTaskCmdRes
+    case class AssignTaskCmdSuccess(id: UUID) extends AssignTaskCmdRes
 
     case class AssignTaskCmdFailed(id: UUID, error: ParticipantError) extends AssignTaskCmdRes with ParticipantErrorCmdRequest
 
@@ -77,7 +75,16 @@ class ParticipantAggregateUseCase(participantAggregateFlows: ParticipantAggregat
   import ParticipantAggregateUseCase.Protocol._
   import UseCaseSupport._
 
-  implicit val mat: Materializer = ActorMaterializer()
+//  implicit val mat: Materializer = ActorMaterializer()
+
+  val decider : Supervision.Decider = {
+    case _                    => Supervision.Restart
+  }
+
+  implicit val mat = ActorMaterializer(
+    ActorMaterializerSettings(system)
+      .withSupervisionStrategy(decider)
+  )
 
   private val bufferSize: Int = 10
 
@@ -101,6 +108,8 @@ class ParticipantAggregateUseCase(participantAggregateFlows: ParticipantAggregat
       .via(participantAggregateFlows.get.zipPromise)
       .toMat(completePromiseSink)(Keep.left)
       .run()
+
+
 
   private val assignTaskQueue: SourceQueueWithComplete[(AssignTaskCmdReq, Promise[AssignTaskCmdRes])] =
     Source.queue[(AssignTaskCmdReq, Promise[AssignTaskCmdRes])](bufferSize, OverflowStrategy.dropNew)

@@ -26,7 +26,7 @@ object ParticipantProtocol {
     id: UUID
   ) extends ParticipantCmdResponse
 
-  case class CreateParticipantCmdFaild(
+  case class CreateParticipantCmdFailed(
     id: UUID,
     error: ParticipantError
 
@@ -41,7 +41,7 @@ object ParticipantProtocol {
     participant: Participant
   ) extends ParticipantCmdResponse
 
-  case class GetParticipantCmdFaile(
+  case class GetParticipantCmdFailed(
     id: UUID,
     error: ParticipantError
   ) extends ParticipantCmdResponse
@@ -49,17 +49,15 @@ object ParticipantProtocol {
 
   case class AssignTaskCmdReq(
     id: UUID,
-    pInstId: UUID,
-    description: String,
-    activity: BaseActivity,
-    actions: Seq[BaseAction],
+    taskId: UUID,
+    pInstId: UUID
   ) extends ParticipantCmdRequest
 
   case class AssignTaskCmdSuccess(
     id: UUID
   ) extends ParticipantCmdResponse
 
-  case class AssignTaskCmdFaild(
+  case class AssignTaskCmdFailed(
     id: UUID,
     error: ParticipantError
 
