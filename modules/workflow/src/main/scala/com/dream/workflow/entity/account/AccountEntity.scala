@@ -6,6 +6,8 @@ import akka.actor.{ActorLogging, Props}
 import akka.persistence._
 import cats.implicits._
 import com.dream.common.EntityState
+import com.dream.common.Protocol.CmdResponseFailed
+import com.dream.common.domain.ResponseError
 import com.dream.workflow.domain.Account._
 import com.dream.workflow.domain.Account
 import com.dream.workflow.entity.account.AccountProtocol._
@@ -78,7 +80,7 @@ class AccountEntity extends PersistentActor with ActorLogging with EntityState[A
 
     case AssignParticipantCmdRequest(id, participantId)  if equalsId(id)(state, _.id.equals(id)) =>
       mapState(_.assignParticipant(participantId)) match {
-        case Left(error) => sender() ! AssignParticipantCmdFailed(id, error)
+        case Left(error) => sender() ! CmdResponseFailed( ResponseError(Some(id), error.message))
         case Right(newState) => persist(ParticipantAssigned(id, participantId)) { event =>
           state = Some(newState)
           sender() ! AssignParticipantCmdSuccess(id)
@@ -108,4 +110,7 @@ class AccountEntity extends PersistentActor with ActorLogging with EntityState[A
     if (lastSequenceNr % numOfEventsToSnapshot == 0) {
       foreachState(saveSnapshot)
     }
+
+  override protected def invaliStateError(id: Option[UUID]): AccountError =
+    InvalidAccountStateError(id)
 }

@@ -6,7 +6,6 @@ import akka.actor.{ActorLogging, Props}
 import akka.persistence._
 import cats.implicits._
 import com.dream.common.EntityState
-import com.dream.workflow.domain.Participant.ParticipantCreated
 import com.dream.workflow.domain.ProcessInstance.{InstError, InvalidInstStateError, ProcessInstanceCreated, Task}
 import com.dream.workflow.domain._
 import com.dream.workflow.entity.processinstance.ProcessInstanceProtocol._
@@ -106,4 +105,6 @@ class ProcessInstanceEntity extends PersistentActor
       state <- Either.fromOption(state, InvalidInstStateError())
       newState <- f(state)
     } yield newState
+
+  override protected def invaliStateError(id: Option[UUID]): InstError =  InvalidInstStateError(id)
 }

@@ -1,13 +1,12 @@
 package com.dream.workflow.adaptor.aggregate
 
-import java.util.UUID
-
 import akka.NotUsed
 import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.stream.scaladsl.Flow
 import akka.util.Timeout
-import com.dream.workflow.domain.Participant.{DefaultParticipantError, InvalidParticipantStateError}
+import com.dream.common.Protocol.CmdResponseFailed
+import com.dream.common.domain.ResponseError
 import com.dream.workflow.entity.participant.ParticipantProtocol._
 import com.dream.workflow.usecase.ParticipantAggregateUseCase.Protocol
 import com.dream.workflow.usecase.port.ParticipantAggregateFlows
@@ -31,7 +30,7 @@ class ParticipantAggregateFlowsImpl(aggregateRef: ActorRef) extends ParticipantA
       .mapAsync(1)(aggregateRef ? _)
       .map {
         case res: CreateParticipantCmdSuccess => Protocol.CreateParticipantCmdSuccess(res.id)
-        case CreateParticipantCmdFailed(id, error) => Protocol.CreateParticipantCmdFailed(id, error)
+        case CmdResponseFailed(message) => Protocol.CreateParticipantCmdFailed(ResponseError(message))
       }
 
   override def get: Flow[Protocol.GetParticipantCmdReq, Protocol.GetParticipantCmdRes, NotUsed] =
@@ -40,11 +39,8 @@ class ParticipantAggregateFlowsImpl(aggregateRef: ActorRef) extends ParticipantA
       .mapAsync(1)(aggregateRef ? _)
       .map {
         case GetParticipantCmdSuccess(participant) => Protocol.GetParticipantCmdSuccess(participant)
-        case GetParticipantCmdFailed(id, error) => Protocol.GetParticipantCmdFailed(id, error)
-      } recover {
-      case e =>  Protocol.GetParticipantCmdFailed(UUID.randomUUID(), DefaultParticipantError(e.getMessage))
-    }
-
+        case CmdResponseFailed(message) => Protocol.GetParticipantCmdFailed(ResponseError(message))
+      }
 
 
   override def assignTask: Flow[Protocol.AssignTaskCmdReq, Protocol.AssignTaskCmdRes, NotUsed] =
@@ -57,7 +53,7 @@ class ParticipantAggregateFlowsImpl(aggregateRef: ActorRef) extends ParticipantA
       .mapAsync(1)(aggregateRef ? _)
       .map {
         case AssignTaskCmdSuccess(id) => Protocol.AssignTaskCmdSuccess(id)
-        case AssignTaskCmdFailed(id, error) => Protocol.AssignTaskCmdFailed(id, error)
+        case CmdResponseFailed(message) => Protocol.AssignTaskCmdFailed(ResponseError(message))
       }
 
 }

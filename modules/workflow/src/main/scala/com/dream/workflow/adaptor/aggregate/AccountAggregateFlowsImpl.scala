@@ -5,6 +5,8 @@ import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.stream.scaladsl.Flow
 import akka.util.Timeout
+import com.dream.common.Protocol.CmdResponseFailed
+import com.dream.common.domain.ResponseError
 import com.dream.workflow.entity.account.AccountProtocol._
 import com.dream.workflow.usecase.AccountAggregateUseCase.Protocol
 import com.dream.workflow.usecase.port.AccountAggregateFlows
@@ -12,7 +14,7 @@ import com.dream.workflow.usecase.port.AccountAggregateFlows
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-class AccountAggregateFlowsImpl (aggregateRef: ActorRef) extends AccountAggregateFlows {
+class AccountAggregateFlowsImpl(aggregateRef: ActorRef) extends AccountAggregateFlows {
 
   private implicit val to: Timeout = Timeout(2 seconds)
 
@@ -22,7 +24,7 @@ class AccountAggregateFlowsImpl (aggregateRef: ActorRef) extends AccountAggregat
       .mapAsync(1)(aggregateRef ? _)
       .map {
         case res: CreateAccountCmdSuccess => Protocol.CreateAccountCmdSuccess(res.id)
-        case CreateAccountCmdFailed(id, error) => Protocol.CreateAccountCmdFailed(id, error)
+        case CmdResponseFailed(message) => Protocol.CreateAccountCmdFailed(ResponseError(message))
       }
 
   override def get: Flow[Protocol.GetAccountCmdReq, Protocol.GetAccountCmdRes, NotUsed] =
@@ -31,7 +33,7 @@ class AccountAggregateFlowsImpl (aggregateRef: ActorRef) extends AccountAggregat
       .mapAsync(1)(aggregateRef ? _)
       .map {
         case GetAccountCmdSuccess(account) => Protocol.GetAccountCmdSuccess(account.id, account.name, account.fullName, account.currParticipantId)
-        case GetAccountCmdFailed(id, error) => Protocol.GetAccountCmdFailed(id, error)
+        case CmdResponseFailed(message) => Protocol.GetAccountCmdFailed(ResponseError(message))
       }
 
   override def assignParticipant: Flow[Protocol.AssignParticipantCmdReq, Protocol.AssignParticipantCmdRes, NotUsed] =
@@ -40,6 +42,6 @@ class AccountAggregateFlowsImpl (aggregateRef: ActorRef) extends AccountAggregat
       .mapAsync(1)(aggregateRef ? _)
       .map {
         case AssignParticipantCmdSuccess(id) => Protocol.AssignParticipantCmdSuccess(id)
-        case AssignParticipantCmdFailed(id, error) => Protocol.AssignParticipantCmdFailed(id, error)
+        case CmdResponseFailed(message) => Protocol.AssignParticipantCmdFailed(ResponseError(message))
       }
 }

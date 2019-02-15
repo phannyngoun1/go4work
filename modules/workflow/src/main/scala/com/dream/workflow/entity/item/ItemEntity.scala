@@ -93,4 +93,6 @@ class ItemEntity extends PersistentActor with ActorLogging  with EntityState[Ite
 
   override def persistenceId: String = s"$AggregateName-${self.path.name}"
 
+  override protected def invaliStateError(id: Option[UUID]): ItemError =
+    InvalidItemStateError(id)
 }

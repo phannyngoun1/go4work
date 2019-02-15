@@ -6,11 +6,10 @@ import akka.actor.ActorSystem
 import akka.stream._
 import akka.stream.scaladsl._
 import com.dream.common.UseCaseSupport
-import com.dream.workflow.domain.ProcessInstance.InstError
+import com.dream.common.domain.ResponseError
 import com.dream.workflow.domain.{Params, ParticipantAccess, StartAction, StartActivity, Flow => WFlow}
 import com.dream.workflow.entity.processinstance.ProcessInstanceProtocol.{PerformTaskCmdReq, CreatePInstCmdRequest => CreateInst}
 import com.dream.workflow.usecase.ItemAggregateUseCase.Protocol.{GetItemCmdRequest, GetItemCmdSuccess}
-import com.dream.workflow.usecase.ParticipantAggregateUseCase.Protocol.AssignTaskCmdReq
 import com.dream.workflow.usecase.ProcessInstanceAggregateUseCase.TaskToDest
 import com.dream.workflow.usecase.WorkflowAggregateUseCase.Protocol.{GetWorkflowCmdRequest, GetWorkflowCmdSuccess}
 import com.dream.workflow.usecase.port.{ItemAggregateFlows, ParticipantAggregateFlows, ProcessInstanceAggregateFlows, WorkflowAggregateFlows}
@@ -46,16 +45,15 @@ object ProcessInstanceAggregateUseCase {
       folio: String
     ) extends CreatePInstCmdResponse
 
-    case class CreatePInstCmdFailed(
-      id: UUID,
-      error: InstError
-    ) extends CreatePInstCmdResponse
+    case class CreatePInstCmdFailed(error: ResponseError) extends CreatePInstCmdResponse
 
     case class GetPInstCmdRequest(id: UUID) extends ProcessInstanceCmdRequest
 
-    sealed trait  GetPInstCmdResponse extends ProcessInstanceCmdRequest
+    sealed trait GetPInstCmdResponse extends ProcessInstanceCmdRequest
+
     case class GetPInstCmdSuccess(id: UUID, folio: String) extends GetPInstCmdResponse
-    case class GetPInstCmdFailed(id: UUID, instError: InstError) extends GetPInstCmdResponse
+
+    case class GetPInstCmdFailed(error: ResponseError) extends GetPInstCmdResponse
 
   }
 
@@ -75,6 +73,8 @@ class ProcessInstanceAggregateUseCase(
   implicit val mat: Materializer = ActorMaterializer()
 
 
+
+
   private val prepareCreateInst = Flow.fromGraph(GraphDSL.create() { implicit b =>
     import GraphDSL.Implicits._
 
@@ -90,20 +90,21 @@ class ProcessInstanceAggregateUseCase(
         val nextFlow = flow.nextActivity(startAction, startActivity, ParticipantAccess(req.by), false) match {
           case Right(flow) => flow
         }
+
         CreateInst(
-          UUID.randomUUID(),
-          UUID.randomUUID(),
-          flow.id,
-          "test",
-          "ticket",
-          StartActivity(),
-          StartAction(),
-          req.by,
-          "Test",
-          nextFlow.participants,
-          nextFlow.activity,
-          nextFlow.actionFlows.map(_.action),
-          "todo"
+          id = UUID.randomUUID(),
+          activityId = UUID.randomUUID(),
+          flowId = flow.id,
+          folio = "test",
+          contentType = "ticket",
+          activity = StartActivity(),
+          action = StartAction(),
+          by = req.by,
+          description = "Test",
+          destinations = nextFlow.participants,
+          nextActivity =  nextFlow.activity,
+          nextActions = nextFlow.actionFlows.map(_.action),
+          todo = "todo"
         )
       }
     )
@@ -121,9 +122,7 @@ class ProcessInstanceAggregateUseCase(
 
     //TODO: adding real tasks
 
-    val assignTaskCmdFlow = Flow[CreateInst].map(p => p.destinations.map(dest => TaskToDest(UUID.randomUUID(), p.id, dest) ))
-
-
+    val assignTaskCmdFlow = Flow[CreateInst].map(p => p.destinations.map(dest => TaskToDest(UUID.randomUUID(), p.id, dest)))
 
 
     val out = createInstZip.out ~> convertToCreatePInstCmdReq ~> createPrepareB ~> processInstanceAggregateFlows.createInst
@@ -132,7 +131,6 @@ class ProcessInstanceAggregateUseCase(
 
     FlowShape(broadcast.in, out.outlet)
   })
-
 
 
   private val createInstanceFlow
@@ -152,7 +150,7 @@ class ProcessInstanceAggregateUseCase(
     offerToQueue(createInstanceFlow)(request, Promise())
   }
 
-  def getPInst(request: GetPInstCmdRequest) (implicit ec: ExecutionContext): Future[GetPInstCmdResponse] =
+  def getPInst(request: GetPInstCmdRequest)(implicit ec: ExecutionContext): Future[GetPInstCmdResponse] =
     offerToQueue(getPInstFlow)(request, Promise())
 
 }

@@ -130,7 +130,7 @@ class HomeController @Inject()(cc: ControllerComponents)
   def getWorkflow(id: String) = Action.async { implicit request =>
     workflowAggregateUseCase.getWorkflow(GetWorkflowCmdRequest(UUID.fromString(id))).map {
       case GetWorkflowCmdSuccess(flow) => Ok(s"${flow.id}")
-      case GetWorkflowCmdFailed(id, error) => Ok(s"Failed, id: ${id}, Error: ${error.message} ")
+      case GetWorkflowCmdFailed(error) => Ok(s"Failed, id: ${id}, Error: ${error.message} ")
     }
   }
 

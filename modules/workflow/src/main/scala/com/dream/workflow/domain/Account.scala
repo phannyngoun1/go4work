@@ -3,15 +3,14 @@ package com.dream.workflow.domain
 import java.time.Instant
 import java.util.UUID
 
+import com.dream.common.domain.ErrorMessage
 import com.dream.workflow.domain.Account.{AccountError, AccountEvent, ParticipantAssigned}
 
 object Account {
 
   sealed trait AccountEvent
 
-  sealed trait AccountError {
-    val message: String
-  }
+  sealed trait AccountError extends ErrorMessage
 
   case class AccountCreated(
     id: UUID,
@@ -25,7 +24,7 @@ object Account {
     participantId: UUID
   ) extends AccountEvent
 
-  case class InvalidAccountStateError(id: Option[UUID] = None) extends AccountError {
+  case class InvalidAccountStateError(override val id: Option[UUID] = None) extends AccountError {
     override val message: String = s"Invalid state${id.fold("")(id => s":id = ${id.toString}")}"
   }
 

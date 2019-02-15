@@ -6,7 +6,7 @@ import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Keep, Source, SourceQueueWithComplete}
 import akka.stream.{ActorMaterializer, Materializer, OverflowStrategy}
 import com.dream.common.UseCaseSupport
-import com.dream.workflow.domain.Account.AccountError
+import com.dream.common.domain.ResponseError
 import com.dream.workflow.usecase.port.AccountAggregateFlows
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -34,8 +34,7 @@ object AccountAggregateUseCase {
 
 
     case class CreateAccountCmdFailed(
-      id: UUID,
-      error: AccountError
+      error: ResponseError
     ) extends CreateAccountCmdRes
 
     case class GetAccountCmdReq(id: UUID) extends AccountCmdRequest
@@ -49,7 +48,7 @@ object AccountAggregateUseCase {
       curParticipantId: Option[UUID] = None
     ) extends GetAccountCmdRes
 
-    case class GetAccountCmdFailed(id: UUID, error: AccountError) extends GetAccountCmdRes
+    case class GetAccountCmdFailed(responseError: ResponseError) extends GetAccountCmdRes
 
     case class AssignParticipantCmdReq(id: UUID, participantId: UUID) extends AccountCmdRequest
 
@@ -57,7 +56,8 @@ object AccountAggregateUseCase {
 
     case class AssignParticipantCmdSuccess(id: UUID) extends AssignParticipantCmdRes
 
-    case class AssignParticipantCmdFailed(id: UUID, error: AccountError) extends AssignParticipantCmdRes
+    case class AssignParticipantCmdFailed(responseError: ResponseError) extends AssignParticipantCmdRes
+
   }
 
 }

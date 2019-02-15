@@ -3,18 +3,17 @@ package com.dream.workflow.domain
 import java.time.Instant
 import java.util.UUID
 
+import com.dream.common.domain.ErrorMessage
 import julienrf.json._
 import play.api.libs.json._
 
-sealed trait WorkflowError {
-  val message: String
-}
+sealed trait WorkflowError extends ErrorMessage
 
 case class DefaultWorkflowError(message: String) extends WorkflowError
 
 case class ActivityNotFoundError(message: String) extends WorkflowError
 
-case class InvalidWorkflowStateError(id: Option[UUID] = None ) extends WorkflowError {
+case class InvalidWorkflowStateError(override val id: Option[UUID] = None ) extends WorkflowError {
   override val message: String = s"Invalid state${id.fold("")(id => s":id = ${id.toString}")}"
 }
 

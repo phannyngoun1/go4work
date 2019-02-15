@@ -3,8 +3,7 @@ package com.dream.workflow.entity.participant
 import java.util.UUID
 
 import com.dream.common.Protocol.{CmdRequest, CmdResponse}
-import com.dream.workflow.domain.{BaseAction, BaseActivity, Participant}
-import com.dream.workflow.domain.Participant.ParticipantError
+import com.dream.workflow.domain.Participant
 
 object ParticipantProtocol {
 
@@ -26,24 +25,12 @@ object ParticipantProtocol {
     id: UUID
   ) extends ParticipantCmdResponse
 
-  case class CreateParticipantCmdFailed(
-    id: UUID,
-    error: ParticipantError
-
-  ) extends ParticipantCmdResponse
-
-
   case class GetParticipantCmdReq(
     id: UUID
   ) extends ParticipantCmdRequest
 
   case class GetParticipantCmdSuccess(
     participant: Participant
-  ) extends ParticipantCmdResponse
-
-  case class GetParticipantCmdFailed(
-    id: UUID,
-    error: ParticipantError
   ) extends ParticipantCmdResponse
 
 
@@ -55,12 +42,6 @@ object ParticipantProtocol {
 
   case class AssignTaskCmdSuccess(
     id: UUID
-  ) extends ParticipantCmdResponse
-
-  case class AssignTaskCmdFailed(
-    id: UUID,
-    error: ParticipantError
-
   ) extends ParticipantCmdResponse
 
 }

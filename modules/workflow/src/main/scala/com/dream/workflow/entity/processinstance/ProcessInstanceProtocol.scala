@@ -3,7 +3,6 @@ package com.dream.workflow.entity.processinstance
 import java.util.UUID
 
 import com.dream.common.Protocol.{CmdRequest, CmdResponse}
-import com.dream.workflow.domain.ProcessInstance.InstError
 import com.dream.workflow.domain._
 
 object ProcessInstanceProtocol {
@@ -40,8 +39,6 @@ object ProcessInstanceProtocol {
 
   case class CreatePInstCmdSuccess(id: UUID) extends CreatePInstCmdResponse
 
-  case class CreatePInstCmdFailed(id: UUID, error: InstError) extends CreatePInstCmdResponse
-
   case class GetPInstCmdRequest(
     id: UUID
   ) extends ProcessInstanceCmdRequest
@@ -50,16 +47,12 @@ object ProcessInstanceProtocol {
     processInstance: ProcessInstance
   ) extends ProcessInstanceCmdResponse
 
-  case class GetPInstCmdFailed(id: UUID, error: InstError) extends ProcessInstanceCmdResponse
-
   case class PerformTaskCmdReq(
     pInstId: UUID,
     activityId: UUID,
   ) extends TaskCmdRequest
 
   case class PerformTaskSuccess() extends PerformTaskCmdRes
-
-  case class PerformTaskFailed() extends PerformTaskCmdRes
 
 
 }

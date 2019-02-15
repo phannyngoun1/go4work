@@ -26,11 +26,6 @@ object ItemProtocol {
     id: UUID
   ) extends ItemCmdResponse
 
-  case class NewItemCmdFailed(
-    id: UUID,
-    itemError: ItemError
-  ) extends ItemCmdResponse
-
 
   case class GetItemCmdRequest(
     id: UUID
@@ -43,20 +38,12 @@ object ItemProtocol {
     workflowId: UUID
   ) extends ItemCmdRequest
 
-  case class GetITemCmdFailed(
-    id: UUID,
-    itemError: ItemError
-  ) extends ItemCmdResponse
 
   case class GetWorkflowId(
     id: UUID
   ) extends ItemCmdRequest
 
   case class GetWorkflowCmdSuccess(
-    workflowId: UUID
-  ) extends ItemCmdResponse
-
-  case class GetWorkflowCmdFailed(
     workflowId: UUID
   ) extends ItemCmdResponse
 

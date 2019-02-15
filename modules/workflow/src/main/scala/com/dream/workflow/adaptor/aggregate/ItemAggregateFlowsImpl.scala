@@ -5,6 +5,8 @@ import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.stream.scaladsl.Flow
 import akka.util.Timeout
+import com.dream.common.Protocol.CmdResponseFailed
+import com.dream.common.domain.ResponseError
 import com.dream.workflow.entity.item.ItemProtocol._
 import com.dream.workflow.usecase.ItemAggregateUseCase.Protocol
 import com.dream.workflow.usecase.port.ItemAggregateFlows
@@ -23,7 +25,7 @@ class ItemAggregateFlowsImpl(aggregateRef: ActorRef) extends ItemAggregateFlows 
       .mapAsync(1)(aggregateRef ? _)
       .map {
         case res: NewItemCmdSuccess => Protocol.CreateItemCmdSuccess(res.id)
-        case res: NewItemCmdFailed => Protocol.CreateItemCmdFailed(res.id, res.itemError)
+        case CmdResponseFailed(message) => Protocol.CreateItemCmdFailed(ResponseError(message))
       }
   }
 
@@ -33,6 +35,6 @@ class ItemAggregateFlowsImpl(aggregateRef: ActorRef) extends ItemAggregateFlows 
       .mapAsync(1)(aggregateRef ? _)
       .map {
         case res: GetItemCmdSuccess => Protocol.GetItemCmdSuccess(res.id, res.name, res.desc, res.workflowId)
-        case res: GetITemCmdFailed => Protocol.GetItemCmdFailed(res.id, res.itemError)
+        case CmdResponseFailed(message) => Protocol.GetItemCmdFailed(ResponseError(message))
       }
 }

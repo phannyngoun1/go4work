@@ -5,6 +5,8 @@ import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.stream.scaladsl.Flow
 import akka.util.Timeout
+import com.dream.common.Protocol.CmdResponseFailed
+import com.dream.common.domain.ResponseError
 import com.dream.workflow.entity.processinstance.ProcessInstanceProtocol.{PerformTaskCmdRes, _}
 import com.dream.workflow.usecase.ProcessInstanceAggregateUseCase.Protocol
 import com.dream.workflow.usecase.port.ProcessInstanceAggregateFlows
@@ -22,7 +24,7 @@ class ProcessInstanceAggregateFlowsImpl(aggregateRef: ActorRef) extends ProcessI
       .mapAsync(1)(aggregateRef ? _)
       .map {
         case res: CreatePInstCmdSuccess => Protocol.CreatePInstCmdSuccess(res.id.toString)
-        case CreatePInstCmdFailed(id, error) => Protocol.CreatePInstCmdFailed(id, error)
+        case  CmdResponseFailed(message) => Protocol.CreatePInstCmdFailed(ResponseError(message))
       }
 
   override def performTask: Flow[PerformTaskCmdReq, PerformTaskCmdRes, NotUsed] =
@@ -38,6 +40,6 @@ class ProcessInstanceAggregateFlowsImpl(aggregateRef: ActorRef) extends ProcessI
     .mapAsync(1)(aggregateRef ? _)
     .map {
       case GetPInstCmdSuccess(pInst) => Protocol.GetPInstCmdSuccess(pInst.id, pInst.folio)
-      case GetPInstCmdFailed(id, error) => Protocol.GetPInstCmdFailed(id, error)
+      case  CmdResponseFailed(message) => Protocol.GetPInstCmdFailed(ResponseError(message))
     }
 }

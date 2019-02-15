@@ -6,6 +6,8 @@ import akka.actor.{ActorLogging, Props}
 import akka.persistence._
 import cats.implicits._
 import com.dream.common.EntityState
+import com.dream.common.Protocol.CmdResponseFailed
+import com.dream.common.domain.ResponseError
 import com.dream.workflow.domain.Participant
 import com.dream.workflow.domain.Participant._
 import com.dream.workflow.entity.participant.ParticipantProtocol._
@@ -93,7 +95,7 @@ class ParticipantEntity extends PersistentActor with ActorLogging with EntitySta
 
     case cmd: AssignTaskCmdReq if equalsId(cmd.id)(state, _.id.equals(cmd.id)) =>
       mapState(_.assignTask(cmd.taskId, cmd.pInstId)) match {
-        case Left(error) => AssignTaskCmdFailed(cmd.id, error)
+        case Left(error) => sender() ! CmdResponseFailed(ResponseError(Some(cmd.id), error.message))
         case Right(newState) => persist(TaskAssigned(cmd.id,cmd.taskId , cmd.pInstId)) { event =>
           state = Some(newState)
           sender() ! AssignTaskCmdSuccess(event.id)
@@ -111,4 +113,7 @@ class ParticipantEntity extends PersistentActor with ActorLogging with EntitySta
     }
 
   override def persistenceId: String = s"$AggregateName-${self.path.name}"
+
+  override protected def invaliStateError(id: Option[UUID]): ParticipantError =
+    InvalidParticipantStateError(id)
 }

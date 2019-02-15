@@ -3,18 +3,22 @@ package com.dream.workflow.usecase
 import java.util.UUID
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer, OverflowStrategy}
 import akka.stream.scaladsl.{Keep, Source, SourceQueueWithComplete}
+import akka.stream.{ActorMaterializer, Materializer, OverflowStrategy}
 import com.dream.common.UseCaseSupport
-import com.dream.workflow.domain.{BaseActivity, BaseActivityFlow, Flow, WorkflowError}
+import com.dream.common.domain.ResponseError
+import com.dream.workflow.domain.{BaseActivity, BaseActivityFlow, Flow}
 import com.dream.workflow.usecase.port.WorkflowAggregateFlows
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
 
 object WorkflowAggregateUseCase {
+
   object Protocol {
+
     sealed trait WorkflowCmdResponse
+
     sealed trait WorkflowCmdRequest
 
     case class CreateWorkflowCmdRequest(
@@ -24,20 +28,27 @@ object WorkflowAggregateUseCase {
     ) extends WorkflowCmdRequest
 
     abstract class CreateWorkflowCmdResponse() extends WorkflowCmdResponse
+
     case class CreateWorkflowCmdSuccess(id: UUID) extends CreateWorkflowCmdResponse
-    case class CreateWorkflowCmdFailed(id: UUID, error: WorkflowError) extends CreateWorkflowCmdResponse
+
+    case class CreateWorkflowCmdFailed(error: ResponseError) extends CreateWorkflowCmdResponse
 
     case class GetWorkflowCmdRequest(
       id: UUID
     ) extends WorkflowCmdRequest
 
     abstract class GetWorkflowCmdResponse() extends WorkflowCmdResponse
+
     case class GetWorkflowCmdSuccess(flow: Flow) extends GetWorkflowCmdResponse
-    case class GetWorkflowCmdFailed(id: UUID, error: WorkflowError) extends GetWorkflowCmdResponse
+
+    case class GetWorkflowCmdFailed(error: ResponseError) extends GetWorkflowCmdResponse
+
   }
+
 }
 
-class WorkflowAggregateUseCase (workflow : WorkflowAggregateFlows)(implicit system: ActorSystem) extends UseCaseSupport {
+class WorkflowAggregateUseCase(workflow: WorkflowAggregateFlows)(implicit system: ActorSystem) extends UseCaseSupport {
+
   import UseCaseSupport._
   import WorkflowAggregateUseCase.Protocol._
 

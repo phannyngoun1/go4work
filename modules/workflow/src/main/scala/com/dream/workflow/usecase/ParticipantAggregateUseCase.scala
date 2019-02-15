@@ -3,11 +3,11 @@ package com.dream.workflow.usecase
 import java.util.UUID
 
 import akka.actor.ActorSystem
-import akka.stream.scaladsl.{Keep, Source, SourceQueueWithComplete}
 import akka.stream._
+import akka.stream.scaladsl.{Keep, Source, SourceQueueWithComplete}
 import com.dream.common.UseCaseSupport
-import com.dream.workflow.domain.Participant.ParticipantError
-import com.dream.workflow.domain.{BaseAction, BaseActivity, Participant}
+import com.dream.common.domain.ResponseError
+import com.dream.workflow.domain.Participant
 import com.dream.workflow.usecase.port.ParticipantAggregateFlows
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -19,11 +19,6 @@ object ParticipantAggregateUseCase {
     sealed trait ParticipantCmdResponse
 
     sealed trait ParticipantCmdRequest
-
-    sealed trait ParticipantErrorCmdRequest extends ParticipantCmdRequest {
-      val id: UUID
-      val error: ParticipantError
-    }
 
     case class CreateParticipantCmdReq(
       id: UUID,
@@ -39,7 +34,7 @@ object ParticipantAggregateUseCase {
       id: UUID
     ) extends CreateParticipantCmdRes
 
-    case class CreateParticipantCmdFailed(id: UUID, error: ParticipantError) extends CreateParticipantCmdRes with ParticipantErrorCmdRequest
+    case class CreateParticipantCmdFailed(error: ResponseError) extends CreateParticipantCmdRes
 
 
     case class GetParticipantCmdReq(
@@ -52,7 +47,7 @@ object ParticipantAggregateUseCase {
       participant: Participant
     ) extends GetParticipantCmdRes
 
-    case class GetParticipantCmdFailed(id: UUID, error: ParticipantError) extends GetParticipantCmdRes with ParticipantErrorCmdRequest
+    case class GetParticipantCmdFailed(error: ResponseError) extends GetParticipantCmdRes
 
 
     case class AssignTaskCmdReq(
@@ -65,9 +60,10 @@ object ParticipantAggregateUseCase {
 
     case class AssignTaskCmdSuccess(id: UUID) extends AssignTaskCmdRes
 
-    case class AssignTaskCmdFailed(id: UUID, error: ParticipantError) extends AssignTaskCmdRes with ParticipantErrorCmdRequest
+    case class AssignTaskCmdFailed(error: ResponseError) extends AssignTaskCmdRes
 
   }
+
 }
 
 class ParticipantAggregateUseCase(participantAggregateFlows: ParticipantAggregateFlows)(implicit system: ActorSystem) extends UseCaseSupport {
@@ -75,10 +71,10 @@ class ParticipantAggregateUseCase(participantAggregateFlows: ParticipantAggregat
   import ParticipantAggregateUseCase.Protocol._
   import UseCaseSupport._
 
-//  implicit val mat: Materializer = ActorMaterializer()
+  //  implicit val mat: Materializer = ActorMaterializer()
 
-  val decider : Supervision.Decider = {
-    case _                    => Supervision.Restart
+  val decider: Supervision.Decider = {
+    case _ => Supervision.Restart
   }
 
   implicit val mat = ActorMaterializer(
@@ -108,7 +104,6 @@ class ParticipantAggregateUseCase(participantAggregateFlows: ParticipantAggregat
       .via(participantAggregateFlows.get.zipPromise)
       .toMat(completePromiseSink)(Keep.left)
       .run()
-
 
 
   private val assignTaskQueue: SourceQueueWithComplete[(AssignTaskCmdReq, Promise[AssignTaskCmdRes])] =

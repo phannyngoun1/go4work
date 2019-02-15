@@ -2,18 +2,17 @@ package com.dream.workflow.domain
 
 import java.util.UUID
 
+import com.dream.common.domain.ErrorMessage
 import com.dream.workflow.domain.ProcessInstance.Task
 
 
 object ProcessInstance {
 
-  sealed trait InstError {
-    val message: String
-  }
+  sealed trait InstError extends ErrorMessage
 
   case class DefaultInstError(message: String) extends InstError
 
-  case class InvalidInstStateError(id: Option[UUID] = None) extends InstError {
+  case class InvalidInstStateError(override val id: Option[UUID] = None) extends InstError {
 
     override val message: String = s"Invalid state${id.fold("")(id => s":id = ${id.toString}")}"
   }

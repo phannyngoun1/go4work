@@ -3,6 +3,7 @@ package com.dream.workflow.domain
 import java.time.Instant
 import java.util.UUID
 
+import com.dream.common.domain.ErrorMessage
 import com.dream.workflow.domain.Participant.{DefaultParticipantError, ParticipantError, ParticipantEvent, TaskAssigned}
 import play.api.libs.json.{Format, Json}
 
@@ -33,17 +34,13 @@ case class ParticipantAccess(participantId: UUID)
 
 object Participant {
 
-  sealed trait ParticipantError {
-    val message: String
-  }
+  sealed trait ParticipantError extends ErrorMessage
 
   case class DefaultParticipantError(message: String) extends ParticipantError
 
-  case class InvalidParticipantStateError(id: Option[UUID] = None) extends ParticipantError {
+  case class InvalidParticipantStateError(override val id: Option[UUID] = None) extends ParticipantError {
     override val message: String = s"Invalid state${id.fold("")(id => s":id = ${id.toString}")}"
   }
-
-
 
   sealed trait ParticipantEvent
 

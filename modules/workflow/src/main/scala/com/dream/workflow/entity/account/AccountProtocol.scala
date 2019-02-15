@@ -36,13 +36,8 @@ object AccountProtocol {
 
   case class GetAccountCmdSuccess(account: Account) extends AccountCmdResponse
 
-  case class GetAccountCmdFailed(id: UUID, error: AccountError) extends AccountCmdResponse
-
   case class AssignParticipantCmdRequest(id: UUID, participantId: UUID) extends AccountCmdRequest
 
   case class AssignParticipantCmdSuccess(id: UUID) extends AccountCmdResponse
-
-  case class AssignParticipantCmdFailed(id: UUID, error: AccountError) extends AccountCmdResponse
-
 
 }
